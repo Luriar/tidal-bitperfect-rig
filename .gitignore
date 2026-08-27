@@ -1,0 +1,12 @@
+*.log
+__pycache__/
+*.pyc
+config_active.yml
+config_validate.yml
+supervisor.pid
+devices_list.txt
+devices_console.txt
+validate_out.txt
+validate_console.txt
+stage.log
+git_setup.log

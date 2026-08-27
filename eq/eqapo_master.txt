@@ -1,0 +1,8 @@
+# EqAPO master — config.txt는 이 파일 하나만 Include함
+# 아래 명시된 장치에만 EQ가 걸림 (Line 1 / CABLE 계열은 절대 비포함)
+Device: Out 1-2
+Include: current_m4.txt
+Device: Mobius
+Include: current_mobius.txt
+Device: AirPods
+Include: current_airpods.txt

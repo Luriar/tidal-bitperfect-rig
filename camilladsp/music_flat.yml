@@ -1,0 +1,15 @@
+# 음감 템플릿: 무보정 (비트 직결 — 스피커/기본)
+devices:
+  samplerate: {{RATE}}
+  chunksize: 4096
+  queuelimit: 16
+  capture:
+    type: Wasapi
+    channels: 2
+    device: "{{CAPTURE_DEVICE}}"
+    format: {{CAPTURE_FORMAT}}
+    exclusive: true
+  playback:
+    type: Asio
+    channels: 2
+    device: "{{PLAYBACK_DEVICE}}"

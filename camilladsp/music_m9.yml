@@ -1,0 +1,66 @@
+# 음감 템플릿: IER-M9 모니터링 보정 (EqAPO IER-M9_Monitoring 변환판, 프리앰프 -6dB)
+devices:
+  samplerate: {{RATE}}
+  chunksize: 4096
+  queuelimit: 16
+  capture:
+    type: Wasapi
+    channels: 2
+    device: "{{CAPTURE_DEVICE}}"
+    format: {{CAPTURE_FORMAT}}
+    exclusive: true
+  playback:
+    type: Asio
+    channels: 2
+    device: "{{PLAYBACK_DEVICE}}"
+filters:
+  preamp:
+    type: Gain
+    parameters:
+      gain: -6.0
+  eq1_ls105:
+    type: Biquad
+    parameters:
+      type: Lowshelf
+      freq: 105
+      q: 0.7
+      gain: 0.7
+  eq2_pk177:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 177
+      q: 0.55
+      gain: -3.8
+  eq3_pk805:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 805
+      q: 1.8
+      gain: 1.4
+  eq4_pk2600:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 2600
+      q: 3.5
+      gain: 4.2
+  eq5_pk6300:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 6300
+      q: 2.2
+      gain: 5.5
+  eq6_hs10k:
+    type: Biquad
+    parameters:
+      type: Highshelf
+      freq: 10000
+      q: 0.7
+      gain: -5.4
+pipeline:
+  - type: Filter
+    channels: [0, 1]
+    names: [preamp, eq1_ls105, eq2_pk177, eq3_pk805, eq4_pk2600, eq5_pk6300, eq6_hs10k]

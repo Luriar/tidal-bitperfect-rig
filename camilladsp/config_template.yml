@@ -1,0 +1,104 @@
+# 음감 템플릿: 모비우스 음감 모드 (v3 확정)
+# 실측: 모비우스 독점은 96k/S24 단일 포맷만 수락 (2026-08-27 04:34 로그)
+# → 캡처는 곡 네이티브(케이블 무변환) → AsyncSinc Accurate로 96k 변환 → 모비우스
+# 보정 = oratory (HQ 프리셋 Default 짝) / 드리프트 보정 겸함
+devices:
+  samplerate: 96000
+  capture_samplerate: {{RATE}}
+  enable_rate_adjust: true
+  resampler:
+    type: AsyncSinc
+    profile: Accurate
+  chunksize: 4096
+  queuelimit: 16
+  capture:
+    type: Wasapi
+    channels: 2
+    device: "{{CAPTURE_DEVICE}}"
+    format: {{CAPTURE_FORMAT}}
+    exclusive: true
+  playback:
+    type: Wasapi
+    channels: 2
+    device: "스피커(Audeze Mobius Hi-Res 2Ch)"
+    format: S24
+    exclusive: true
+filters:
+  preamp:
+    type: Gain
+    parameters:
+      gain: -6.3
+  eq1_ls105:
+    type: Biquad
+    parameters:
+      type: Lowshelf
+      freq: 105
+      q: 0.7
+      gain: 4.3
+  eq2_pk39:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 39
+      q: 0.72
+      gain: -3.7
+  eq3_pk319:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 319
+      q: 0.19
+      gain: -6.4
+  eq4_pk503:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 503
+      q: 0.57
+      gain: 7.0
+  eq5_pk6422:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 6422
+      q: 1.31
+      gain: 6.0
+  eq6_pk2145:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 2145
+      q: 2.68
+      gain: 1.0
+  eq7_pk2924:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 2924
+      q: 5.83
+      gain: -2.9
+  eq8_pk6287:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 6287
+      q: 4.78
+      gain: 0.8
+  eq9_pk9318:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 9318
+      q: 2.57
+      gain: 4.2
+  eq10_hs10k:
+    type: Biquad
+    parameters:
+      type: Highshelf
+      freq: 10000
+      q: 0.7
+      gain: -9.0
+pipeline:
+  - type: Filter
+    channels: [0, 1]
+    names: [preamp, eq1_ls105, eq2_pk39, eq3_pk319, eq4_pk503, eq5_pk6422, eq6_pk2145, eq7_pk2924, eq8_pk6287, eq9_pk9318, eq10_hs10k]

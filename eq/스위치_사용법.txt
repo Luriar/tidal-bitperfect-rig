@@ -1,0 +1,38 @@
+================================================
+EQ 전환 시스템 사용법 (v2 — 위치 독립형, 최종 거처 C:\EQ)
+================================================
+구조:
+  EqAPO config.txt → C:\EQ\eqapo_master.txt →
+    Device: Out 1-2  → current_m4.txt      (게임/일상, M4 공유 경로)
+    Device: Mobius   → current_mobius.txt  (모비우스)
+    Device: AirPods  → current_airpods.txt (에어팟 프로 2)
+  ※ Line 1(음감 체인)·CABLE(마이크 체인)에는 어떤 EQ도 안 걸림
+  ※ TIDAL 음감(ASIO)은 EqAPO 영향 밖 — 설계대로 분리
+
+★ v2 특징 — 위치 독립: 모든 bat이 자기 폴더(%~dp0) 기준으로 동작.
+  폴더를 어디로 옮겨도 아무 스위치 bat 하나만 실행하면 EqAPO 연결이
+  자동으로 새 위치로 갱신됨 (관리자 불필요 — config 폴더는 사용자 쓰기 가능).
+
+전환 (더블클릭 = 즉시 적용):
+  [M4 = Out 1-2 에 꽂은 것 기준 — 잭에 뭘 꽂았는지는 수동 선택]
+    EQ_M4_OFF          스피커/무보정
+    EQ_M4_M9 / _PUBG   IER-M9 음감/배그
+    EQ_M4_W80 / _PUBG  W80 음감/배그
+    EQ_M4_AF140 / _PUBG  AF140 음감/배그
+  [모비우스 — 자동 적용 장치]
+    EQ_MOBIUS_MON / _PUBG        oratory 보정 (HQ 프리셋 Default와 짝)
+    EQ_MOBIUS_FLAT_MON / _PUBG   crinacle flat (HQ 프리셋 Flat과 짝)
+    EQ_MOBIUS_OFF                무보정
+  [에어팟 프로 2 — 연결만 하면 자동 적용, ANC 켠 상태 기준]
+    EQ_AIRPODS_MON / _PUBG / _OFF
+  [진단]
+    EQ_M4_TEST / EQ_MOBIUS_TEST  볼륨 -25dB 생존 테스트 (끝나면 아무 스위치로 복구)
+
+주의:
+  - EqAPO는 이 폴더 파일 변경을 감시하지 못함 → 모든 bat이 _apply.bat을
+    호출해 config.txt를 다시 써서 리로드시킴. 프로파일 txt를 손으로 고치면
+    아무 스위치나 한 번 실행해야 반영됨
+  - EqAPO의 Editor.exe는 열어두지 말 것 (자기 버전으로 덮어쓸 수 있음)
+  - 이 폴더는 시스템 폴더임 — 지우거나 이름 바꾸지 말 것 (옮기는 건 가능,
+    옮긴 뒤 스위치 하나 실행)
+================================================

@@ -1,0 +1,80 @@
+# 음감 템플릿: AF140 모니터링 보정 (EqAPO AF140_Monitoring 변환판, 프리앰프 -9dB)
+devices:
+  samplerate: {{RATE}}
+  chunksize: 4096
+  queuelimit: 16
+  capture:
+    type: Wasapi
+    channels: 2
+    device: "{{CAPTURE_DEVICE}}"
+    format: {{CAPTURE_FORMAT}}
+    exclusive: true
+  playback:
+    type: Asio
+    channels: 2
+    device: "{{PLAYBACK_DEVICE}}"
+filters:
+  preamp:
+    type: Gain
+    parameters:
+      gain: -9.0
+  eq1_pk180:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 180
+      q: 0.6
+      gain: -8.0
+  eq2_ls45:
+    type: Biquad
+    parameters:
+      type: Lowshelf
+      freq: 45
+      q: 0.7
+      gain: -1.0
+  eq3_pk480:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 480
+      q: 2.0
+      gain: -1.5
+  eq4_pk1000:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 1000
+      q: 2.5
+      gain: 1.5
+  eq5_pk2600:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 2600
+      q: 1.8
+      gain: 3.0
+  eq6_pk3450:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 3450
+      q: 2.5
+      gain: 6.5
+  eq7_pk6500:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 6500
+      q: 2.0
+      gain: 4.0
+  eq8_pk9200:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 9200
+      q: 2.5
+      gain: -5.0
+pipeline:
+  - type: Filter
+    channels: [0, 1]
+    names: [preamp, eq1_pk180, eq2_ls45, eq3_pk480, eq4_pk1000, eq5_pk2600, eq6_pk3450, eq7_pk6500, eq8_pk9200]

@@ -1,0 +1,87 @@
+# 음감 템플릿: W80 모니터링 보정 (EqAPO W80_Monitoring 변환판, 프리앰프 -7dB 포함)
+devices:
+  samplerate: {{RATE}}
+  chunksize: 4096
+  queuelimit: 16
+  capture:
+    type: Wasapi
+    channels: 2
+    device: "{{CAPTURE_DEVICE}}"
+    format: {{CAPTURE_FORMAT}}
+    exclusive: true
+  playback:
+    type: Asio
+    channels: 2
+    device: "{{PLAYBACK_DEVICE}}"
+filters:
+  preamp:
+    type: Gain
+    parameters:
+      gain: -7.0
+  eq1_ls105:
+    type: Biquad
+    parameters:
+      type: Lowshelf
+      freq: 105
+      q: 0.7
+      gain: 2.5
+  eq2_pk69:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 69
+      q: 0.98
+      gain: 2.2
+  eq3_pk222:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 222
+      q: 0.26
+      gain: -7.1
+  eq4_pk1365:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 1365
+      q: 2.05
+      gain: -5.9
+  eq5_pk3705:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 3705
+      q: 0.2
+      gain: 6.6
+  eq6_pk877:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 877
+      q: 2.06
+      gain: -0.2
+  eq7_pk1762:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 1762
+      q: 3.96
+      gain: -1.1
+  eq8_pk2309:
+    type: Biquad
+    parameters:
+      type: Peaking
+      freq: 2309
+      q: 3.58
+      gain: 2.0
+  eq9_hs10k:
+    type: Biquad
+    parameters:
+      type: Highshelf
+      freq: 10000
+      q: 0.7
+      gain: 1.6
+pipeline:
+  - type: Filter
+    channels: [0, 1]
+    names: [preamp, eq1_ls105, eq2_pk69, eq3_pk222, eq4_pk1365, eq5_pk3705, eq6_pk877, eq7_pk1762, eq8_pk2309, eq9_hs10k]

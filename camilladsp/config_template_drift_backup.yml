@@ -1,0 +1,20 @@
+# [백업] 드리프트 보정판 — 리샘플러 A/B 실험 전 원본 (2026-08-26 22시)
+devices:
+  samplerate: {{RATE}}
+  chunksize: 4096
+  queuelimit: 16
+  enable_rate_adjust: true
+  capture_samplerate: {{RATE}}
+  resampler:
+    type: AsyncSinc
+    profile: Balanced
+  capture:
+    type: Wasapi
+    channels: 2
+    device: "{{CAPTURE_DEVICE}}"
+    format: {{CAPTURE_FORMAT}}
+    exclusive: true
+  playback:
+    type: Asio
+    channels: 2
+    device: "{{PLAYBACK_DEVICE}}"
