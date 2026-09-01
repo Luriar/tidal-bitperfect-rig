@@ -1,6 +1,6 @@
 # TIDAL Bit-Perfect Rig
 
-TIDAL 독점 모드의 **비트퍼펙트 재생**과 **DSP(EQ·룸보정 자리)**를 동시에 성립시키고,
+TIDAL 독점 모드의 **비트퍼펙트 재생**과 **DSP(EQ·룸보정 자리)**를 동시에 성립시키고
 곡의 샘플레이트(44.1~192kHz)를 **자동 추종**하는 Windows 오디오 시스템.
 전부 무료 소프트웨어 + VAC 라이선스 1개로 구성. (2026-08 제작·실사용 검증)
 
@@ -33,9 +33,9 @@ TIDAL 독점 모드의 **비트퍼펙트 재생**과 **DSP(EQ·룸보정 자리)
 
 ### 준비물
 - Windows 10/11, TIDAL 데스크톱 앱
-- **Virtual Audio Cable 4.7x** (뮤지첸코) — https://vac.muzychenko.net 에서 **라이선스 구매** 후 정식판 설치
-  (트라이얼은 주기적 음성 워터마크. 크랙판은 커널 드라이버라 보안 위험이 큼 — 구매 권장)
-- **CamillaDSP v4.x ASIO 빌드** — GitHub HEnquist/camilladsp 릴리스의 `camilladsp-windows-asio-amd64.zip`
+- **Virtual Audio Cable 4.7x** (뮤지첸코): https://vac.muzychenko.net 에서 **라이선스 구매** 후 정식판 설치
+  (트라이얼은 주기적 음성 워터마크. 크랙판은 커널 드라이버라 보안 위험이 큼. 구매 권장)
+- **CamillaDSP v4.x ASIO 빌드**: GitHub HEnquist/camilladsp 릴리스의 `camilladsp-windows-asio-amd64.zip`
 - **Python 3.12** (설치 시 py 런처 포함)
 - **Equalizer APO 1.4.x** (SourceForge)
 - 이 저장소
@@ -62,10 +62,10 @@ TIDAL 독점 모드의 **비트퍼펙트 재생**과 **DSP(EQ·룸보정 자리)
    버퍼 512 이상, "Use lowest latency safety offsets" 끔.
 
 6. **TIDAL**: 설정 → 사운드 출력 = `Line 1 (Virtual Audio Cable)` + **독점 모드 켬**.
-   ⚠️ 독점 토글은 "다음 스트림부터" 적용 — 변경 후 TIDAL을 **트레이까지 완전 종료** 후 재실행.
+   ⚠️ 독점 토글은 "다음 스트림부터" 적용. 변경 후 TIDAL을 **트레이까지 완전 종료** 후 재실행.
 
 7. **윈도우 소리 설정** (제어판 → 소리):
-   - 재생 기본 장치 = 메인 DAC 출력 (예: `Out 1-2 (MOTU M Series)`) — Line 1로 두면 안 됨
+   - 재생 기본 장치 = 메인 DAC 출력 (예: `Out 1-2 (MOTU M Series)`). Line 1로 두면 안 됨
    - 녹음 기본 장치 = 마이크 체인 출구 (Line 1로 두면 음악이 보이스챗에 송출되는 사고 발생!)
    - 통신 탭 = "아무 작업도 하지 않음" (통화 시 음악 자동 감쇠 방지)
 
@@ -80,7 +80,7 @@ TIDAL 독점 모드의 **비트퍼펙트 재생**과 **DSP(EQ·룸보정 자리)
 9. **첫 가동**: `run_supervisor.bat` 더블클릭 → TIDAL 재생 →
    콘솔/`supervisor.log`에 `재생 감지 → 성공: NNNNHz / S24`가 뜨면 성공.
    레이트 다른 곡으로 넘겨 `레이트 전환 감지 → 성공(전환) → TIDAL 재개` 확인.
-   ⚠️ 콘솔 창에서 텍스트를 드래그하면 프로세스가 얼어붙음(quick-edit) — 선택하지 말 것.
+   ⚠️ 콘솔 창에서 텍스트를 드래그하면 프로세스가 얼어붙음(quick-edit). 선택하지 말 것.
 
 10. **부팅 자동 시작**: `install_autostart.bat` 더블클릭 (이후 부팅부터 완전 백그라운드).
 
@@ -111,7 +111,7 @@ TIDAL 독점 모드의 **비트퍼펙트 재생**과 **DSP(EQ·룸보정 자리)
   (변환 규칙: `Preamp→Gain`, `PK→Peaking`, `LSC→Lowshelf`, `HSC→Highshelf`)
 
 ## 크레딧
-- 측정 데이터: oratory1990, crinacle, 골든이어스(GoldenEars) — EQ 프로파일은 이들 측정 기반 자작
+- 측정 데이터: oratory1990, crinacle, 골든이어스(GoldenEars). EQ 프로파일은 이들 측정 기반 자작
 - [CamillaDSP](https://github.com/HEnquist/camilladsp) (HEnquist), [Equalizer APO](https://sourceforge.net/projects/equalizerapo/),
-  [Virtual Audio Cable](https://vac.muzychenko.net) (E. Muzychenko — 유료, 라이선스 구매 필요)
+  [Virtual Audio Cable](https://vac.muzychenko.net) (E. Muzychenko · 유료, 라이선스 구매 필요)
 - 설계·구현: 에이치 + Claude, 2026-08-26~27의 아주 긴 밤
