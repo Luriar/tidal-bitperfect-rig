@@ -74,20 +74,55 @@ def find_capture_index():
 
 
 def cable_rms_dbfs(dev_index, seconds=0.15):
+    """Return activity without opening a Windows capture stream.
+
+    VAC exposes the current stream count in its control panel (control id 1024).
+    Reading that Static control does not open the capture endpoint, so Windows
+    microphone privacy state stays untouched. Keep the old dB-shaped return
+    values because the main loop only compares them with RMS_START_DBFS.
+    """
     try:
-        rec = sd.rec(int(seconds * 44100), samplerate=44100, channels=2,
-                     device=dev_index, dtype="float32")
-        sd.wait()
-        rms = float(np.sqrt(np.mean(rec ** 2)))
-        return -120.0 if rms <= 0 else 20.0 * np.log10(rms)
+        import ctypes
+        from ctypes import wintypes
+        u32 = ctypes.windll.user32
+        mains = []
+
+        @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        def enum_top(h, _):
+            b = ctypes.create_unicode_buffer(256)
+            u32.GetWindowTextW(h, b, 256)
+            if b.value.startswith("Virtual Audio Cable Control Panel"):
+                mains.append(h)
+            return True
+
+        u32.EnumWindows(enum_top, 0)
+        if not mains:
+            _lv_init()
+            return None
+
+        # vcctlpan ignores STARTUPINFO SW_HIDE on some builds. Force-hide it.
+        try:
+            u32.ShowWindow(mains[0], 0)
+        except Exception:
+            pass
+
+        streams_ctl = u32.GetDlgItem(mains[0], 1024)
+        if not streams_ctl:
+            return None
+        b = ctypes.create_unicode_buffer(32)
+        u32.GetWindowTextW(streams_ctl, b, 32)
+        value = b.value.strip()
+        if not value.isdigit():
+            return None
+        return -20.0 if int(value) > 0 else -120.0
     except Exception:
         return None
-
 
 def render_config(rate, cap_fmt, cap_dev, pb_dev):
     with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
         cfg = f.read()
     # 모비우스 모드용 조건 렌더: ≤96k는 네이티브 그대로, >96k만 96k로 정밀 리샘플
+    # Native-rate playback: follow the TIDAL source rate on MOTU ASIO.
     m_rate = min(rate, 96000)
     if rate > 96000:
         m_res = ("  capture_samplerate: {}\n"
@@ -264,6 +299,14 @@ def _lv_init():
                     si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                     si.wShowWindow = 0  # SW_HIDE 요청 (vcctlpan이 무시할 수 있음)
                     subprocess.Popen([exe], startupinfo=si)
+                    # VAC may ignore SW_HIDE. Hide its top-level window as soon as it exists.
+                    for _ in range(20):
+                        time.sleep(0.05)
+                        mains.clear()
+                        u32.EnumWindows(et, 0)
+                        if mains:
+                            u32.ShowWindow(mains[0], 0)
+                            break
                     LAST_GOOD["lv_hide"] = True  # 다음 부착 때 창을 직접 숨김
                     log("VAC 제어판 자동 실행 (숨김, 즉답 오라클용)")
                 except OSError:
@@ -825,16 +868,12 @@ def main():
                         continue
                     lv_rate, lv_pb = vac_lv_info()
                     if lv_pb == 0:
-                        # 렌더 0 = TIDAL이 안 밀고 있음 → 헛프로브 방지.
-                        # 단 숨김 패널이 스테일일 수 있으므로 신호가 있는 채로
-                        # 5회 지속되면 패널 무시하고 프로브 강행 (무음 먹통 방지)
+                        # No active VAC sender: stay idle; never force-open MOTU ASIO.
                         LAST_GOOD["pb0_skips"] = LAST_GOOD.get("pb0_skips", 0) + 1
                         if LAST_GOOD["pb0_skips"] % 5 == 1:
-                            log(f"신호는 있는데 렌더 스트림 0 — 대기 ({LAST_GOOD['pb0_skips']}회)")
-                        if LAST_GOOD["pb0_skips"] < 5:
-                            time.sleep(1.0)
-                            continue
-                        log("렌더 0 지속 + 신호 있음 — 패널 스테일 추정, 프로브 강행")
+                            log(f"VAC sender 0 -> idle, probe suppressed ({LAST_GOOD['pb0_skips']})")
+                        time.sleep(1.0)
+                        continue
                     else:
                         LAST_GOOD["pb0_skips"] = 0
                     log(f"재생 감지 ({db:.1f} dBFS) — 프로브 시작")
