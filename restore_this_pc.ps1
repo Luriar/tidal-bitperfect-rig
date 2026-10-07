@@ -18,7 +18,7 @@ function Ok([string]$m) { Write-Host ("[OK] " + $m) -ForegroundColor Green }
 
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    throw "??? PowerShell?? ? ????? ?????."
+    throw "Run this script from an elevated Administrator PowerShell."
 }
 
 Step "Stop custom audio processes before restoring files"

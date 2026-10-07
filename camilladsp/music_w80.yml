@@ -1,4 +1,4 @@
-# ?? ???: W80 ???? ?? (EqAPO W80_Monitoring ???, ???? -10.5dB)
+# Listening template: W80 Monitoring (EqAPO W80_Monitoring conversion, preamp -10.5 dB)
 devices:
   samplerate: {{RATE}}
   chunksize: 256
