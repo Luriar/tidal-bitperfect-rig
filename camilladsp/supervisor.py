@@ -13,6 +13,7 @@ import os
 import subprocess
 import sys
 import time
+import threading
 
 import numpy as np
 import sounddevice as sd
@@ -32,6 +33,9 @@ WS_PORT = 1234
 RMS_START_DBFS = -60.0
 SILENCE_STOP_SEC = 60   # 무음 1분 후 M4 반납 (게임/일상 복귀)
 POLL_IDLE_SEC = 1.0
+RATE_STABLE_SEC = 0.20     # metadata-only fallback; matched TIDAL+VAC switches immediately
+RATE_STABLE_POLLS = 2      # metadata-only fallback polls
+RATE_FALLBACK_STABLE_SEC = 0.50  # VAC-only fallback stays conservative
 # =================================
 
 LAST_GOOD = {"fmt": None, "capdev": None, "pbdev": None}
@@ -41,6 +45,7 @@ TEMPLATE_PATH = os.path.join(HERE, "config_template.yml")
 ACTIVE_PATH = os.path.join(HERE, "config_active.yml")
 LOG_PATH = os.path.join(HERE, "supervisor.log")
 CAMILLA_LOG = os.path.join(HERE, "camilla_last.log")
+CLOCK_SCRIPT = os.path.join(HERE, "audio-clock-mode.ps1")
 
 
 def log(msg):
@@ -642,22 +647,25 @@ def tidal_playback_status():
 
 
 def tidal_cmd(play):
-    """명시적 재생/정지 명령 (토글 아님 → 유실·반전 불가능).
-    SMTC 실패 시에만 미디어 키 토글 폴백. 성공 여부 반환"""
+    """Send an explicit TIDAL SMTC play/pause command.
+
+    Never fall back to the system Play/Pause toggle here. A toggle is unsafe when
+    playback state is unknown and was the source of repeated transport flips.
+    """
+    current = tidal_playback_status()
+    if (play and current == 4) or ((not play) and current == 5):
+        return True
     s = _smtc_tidal()
-    if s:
-        try:
-            import asyncio
+    if not s:
+        return False
+    try:
+        import asyncio
 
-            async def _go():
-                return await (s.try_play_async() if play else s.try_pause_async())
-            if asyncio.run(_go()):
-                return True
-        except Exception:
-            pass
-    media_playpause()
-    return False
-
+        async def _go():
+            return await (s.try_play_async() if play else s.try_pause_async())
+        return bool(asyncio.run(_go()))
+    except Exception:
+        return False
 
 def ws_query(cmd):
     try:
@@ -674,8 +682,11 @@ def ws_query(cmd):
 def camilla_capture_dbfs():
     res = ws_query("GetCaptureSignalRms")
     try:
-        return max(res["GetCaptureSignalRms"]["value"])
-    except (TypeError, KeyError):
+        values = res["GetCaptureSignalRms"]["value"]
+        if not values:
+            return None
+        return max(values)
+    except (TypeError, KeyError, ValueError):
         return None
 
 
@@ -686,6 +697,78 @@ def camilla_state():
     except (TypeError, KeyError):
         return None
 
+
+def camilla_set_mute(muted):
+    """Set CamillaDSP Main mute explicitly; never toggle."""
+    res = ws_query({"SetMute": bool(muted)})
+    try:
+        return res["SetMute"]["result"] == "Ok"
+    except (TypeError, KeyError):
+        return False
+
+
+def seek_declick_worker():
+    """Hide TIDAL seek discontinuities without touching transport state.
+
+    On media.seek, mute immediately. Keep output muted across TIDAL's exclusive
+    WASAPI teardown/reopen and only unmute after the NEW render thread has
+    actually started, plus a short settling window. A timeout prevents stuck mute.
+    """
+    import re as _re
+    pos = None
+    seek_re = _re.compile(r'"command"\s*:\s*"media\.seek"')
+    render_re = _re.compile(r'WASAPI engine starting render thread', _re.I)
+    pending = False
+    render_seen_at = None
+    seek_started_at = 0.0
+    while True:
+        try:
+            now = time.time()
+            size = os.path.getsize(TIDAL_LOG)
+            data = ""
+            if pos is None or size < pos:
+                pos = size  # start at EOF; never replay historical seeks
+            elif size > pos:
+                with open(TIDAL_LOG, "rb") as f:
+                    f.seek(pos)
+                    data = f.read(size - pos).decode("utf-8", "replace")
+                pos = size
+
+            if data and seek_re.search(data):
+                pending = True
+                render_seen_at = None
+                seek_started_at = now
+                if camilla_set_mute(True):
+                    log("seek de-click v2: mute immediately")
+
+            if pending and data and render_re.search(data):
+                render_seen_at = now
+                log("seek de-click v2: new WASAPI render thread seen")
+
+            # Let the new render callback fill a few 256-sample chunks before
+            # exposing it. 60 ms covers the observed TIDAL seek reopen window.
+            if pending and render_seen_at is not None and now - render_seen_at >= 0.06:
+                camilla_set_mute(False)
+                log("seek de-click v2: unmute after render settle")
+                pending = False
+                render_seen_at = None
+            elif pending and now - seek_started_at >= 1.5:
+                camilla_set_mute(False)
+                log("seek de-click v2: timeout unmute")
+                pending = False
+                render_seen_at = None
+
+            time.sleep(0.01)
+        except Exception:
+            # Never leave output muted if the log rolls or Camilla restarts.
+            if pending:
+                try:
+                    camilla_set_mute(False)
+                except Exception:
+                    pass
+                pending = False
+                render_seen_at = None
+            time.sleep(0.05)
 
 def camilla_buffer_level():
     """출력(재생) 버퍼에 실제로 쌓인 프레임 수 — 프라이밍 완료의 실측 지표"""
@@ -734,6 +817,54 @@ def ordered(candidates, remembered):
     return list(candidates)
 
 
+def set_clock_mode(rate, shared=False):
+    """Coordinate Windows endpoints, MOTU hardware clock and Light Host."""
+    if LAST_GOOD.get("clock_rate") == rate and LAST_GOOD.get("clock_shared") == shared:
+        return True
+    args = [
+        "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "-File", CLOCK_SCRIPT, "-Rate", str(rate),
+    ]
+    if shared:
+        args.append("-Shared")
+    try:
+        r = subprocess.run(
+            args, capture_output=True, text=True, timeout=20,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        if r.returncode != 0:
+            log(f"clock mode failed rate={rate} shared={shared}: {(r.stderr or r.stdout)[-400:]}")
+            return False
+        LAST_GOOD["clock_rate"] = rate
+        LAST_GOOD["clock_shared"] = shared
+        log(f"clock mode -> {'shared' if shared else 'native'} {rate}Hz")
+        return True
+    except Exception as e:
+        log(f"clock mode exception rate={rate} shared={shared}: {e}")
+        return False
+
+
+def prepare_native_rate(rate):
+    ps = (
+        "Get-Process 'Light Host' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue; "
+        "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'wscript.exe' -and $_.CommandLine -like '*light-host-autostart.vbs*' } | "
+        "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+    )
+    try:
+        subprocess.run(["powershell.exe","-NoProfile","-NonInteractive","-Command",ps],
+                       capture_output=True,text=True,timeout=5,
+                       creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
+    except Exception as e:
+        log(f"native prep Light Host cleanup skipped: {e}")
+    LAST_GOOD["clock_rate"] = rate
+    LAST_GOOD["clock_shared"] = False
+    log(f"native prep -> ASIO owns {rate}Hz; WDM forcing disabled")
+    return True
+
+
+def restore_shared_48():
+    return set_clock_mode(48000, shared=True)
+
+
 def try_start(rate, expect_signal=True):
     """expect_signal=False: 전환 모드(TIDAL 일시정지 중) — 무신호를 실패로 안 봄"""
     for cap_dev in ordered(CAPTURE_DEVICES, LAST_GOOD["capdev"]):
@@ -746,8 +877,10 @@ def try_start(rate, expect_signal=True):
                                         stdout=lf, stderr=subprocess.STDOUT)
                 # 빠른 실패 판정 (실패는 0.3초 내 사망 — 성공 대기 최소화)
                 dead = False
-                for _ in range(4 if not expect_signal else 8):
-                    time.sleep(0.15)
+                checks = 4 if not expect_signal else 8
+                delay = 0.05 if not expect_signal else 0.15
+                for _ in range(checks):
+                    time.sleep(delay)
                     if proc.poll() is not None:
                         dead = True
                         break
@@ -808,31 +941,62 @@ PID_PATH = os.path.join(HERE, "supervisor.pid")
 
 
 def kill_previous():
-    """이전 수퍼바이저/카밀라 정리 (자기 자신·부모 제외, 검증 후 종료)"""
-    import signal
-    me, parent = os.getpid(), os.getppid()
+    """Stop only the previously recorded supervisor PID and camilladsp.exe."""
+    me = os.getpid()
+    old = None
     try:
-        res = subprocess.run(
-            'wmic process where "commandline like \'%%supervisor.py%%\'" get processid',
-            shell=True, capture_output=True, text=True, timeout=10)
-        pids = [int(t) for t in res.stdout.split() if t.isdigit()]
-        for p in pids:
-            if p not in (me, parent):
-                try:
-                    os.kill(p, signal.SIGTERM)
-                    log(f"이전 수퍼바이저(pid {p}) 종료")
-                except OSError:
-                    pass
-    except Exception as e:
-        log(f"이전 인스턴스 정리 생략: {e}")
-    subprocess.run(["taskkill", "/F", "/IM", "camilladsp.exe"],
-                   capture_output=True)
-    with open(PID_PATH, "w") as f:
-        f.write(str(os.getpid()))
+        with open(PID_PATH, "r", encoding="utf-8") as f:
+            old = int(f.read().strip())
+    except Exception:
+        old = None
+
+    if old and old != me:
+        try:
+            ps_cmd = (
+                "$p=Get-CimInstance Win32_Process -Filter 'ProcessId=%d'; "
+                "if($p){$p.Name + '|' + $p.CommandLine}" % old
+            )
+            check = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", ps_cmd],
+                capture_output=True, text=True, timeout=5,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            info = (check.stdout or "")
+            if "supervisor.py" in info and ("py.exe|" in info or "python.exe|" in info):
+                subprocess.run(
+                    ["taskkill", "/F", "/PID", str(old)],
+                    capture_output=True,
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                log(f"previous supervisor stopped (pid {old})")
+        except Exception as e:
+            log(f"previous supervisor cleanup skipped: {e}")
+
+    subprocess.run(
+        ["taskkill", "/F", "/IM", "camilladsp.exe"],
+        capture_output=True,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    with open(PID_PATH, "w", encoding="utf-8") as f:
+        f.write(str(me))
+
+
+# TIDAL_GATE_ONLY_V1
+def tidal_process_running():
+    """Return True only while TIDAL.exe exists. No clock restore side effects."""
+    try:
+        r = subprocess.run(
+            ["tasklist", "/FI", "IMAGENAME eq TIDAL.exe", "/NH"],
+            capture_output=True,
+            text=True,
+            timeout=1.5,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        return "TIDAL.exe" in (r.stdout or "")
+    except Exception:
+        return False
 
 
 def main():
     kill_previous()
+    threading.Thread(target=seek_declick_worker, name="tidal-seek-declick", daemon=True).start()
     if not os.path.exists(CAMILLA_EXE):
         log(f"camilladsp.exe 없음: {CAMILLA_EXE}")
         sys.exit(1)
@@ -847,9 +1011,44 @@ def main():
     proc, lf = None, None
     last_rate = None
     silence_since = None
+    pending_rate = None
+    pending_rate_since = 0.0
+    pending_rate_hits = 0
+    if not tidal_process_running():
+        restore_shared_48()
+    else:
+        _vr = vac_current_rate()
+        _lv, _pb = vac_lv_info()
+        _native = _lv or _vr
+        if _native in RATES and _pb:
+            prepare_native_rate(_native)
+        else:
+            log("TIDAL active at startup -> defer shared 48 restore until native rate resolves")
 
     try:
         while True:
+            # TIDAL_GATE_ONLY_V1: never probe/open MOTU ASIO for unrelated
+            # Line 1 senders while TIDAL itself is not running.
+            if not tidal_process_running():
+                # Quarantine decoder metadata from the previous TIDAL session.
+                # Keep the current EOF so a later launch only sees newly appended
+                # decoder metadata instead of reusing the last track's rate.
+                try:
+                    LAST_GOOD["tlog_pos"] = os.path.getsize(TIDAL_LOG)
+                except OSError:
+                    LAST_GOOD.pop("tlog_pos", None)
+                LAST_GOOD.pop("tlog_rate", None)
+                if proc is not None:
+                    log("TIDAL absent -> stop CamillaDSP and stay idle")
+                    stop(proc, lf)
+                    proc, lf = None, None
+                    silence_since = None
+                    last_rate = None
+                if not LAST_GOOD.get("clock_shared"):
+                    restore_shared_48()
+                time.sleep(0.5)
+                continue
+
             if proc is None:
                 db = cable_rms_dbfs(cap_idx)
                 if db is not None and db > RMS_START_DBFS:
@@ -882,35 +1081,62 @@ def main():
                         log(f"케이블 실측: {lv_rate}Hz (렌더 {lv_pb}개)")
                     elif vac_rate:
                         log(f"TIDAL 로그 판독: 소스 레이트 {vac_rate}Hz")
+                    # Never sweep the MOTU hardware clock across guessed sample rates.
+                    # Use live VAC/TIDAL metadata only. If the rate is temporarily
+                    # unknown, wait instead of changing hardware clock.
                     head = []
-                    for r in [lv_rate, vac_rate, last_rate]:
-                        if r and r not in head:
+                    for r in (lv_rate, vac_rate):
+                        if r and r in RATES and r not in head:
                             head.append(r)
-                    queue = head + [r for r in RATES if r not in head]
+                    if not head and last_rate in RATES:
+                        head = [last_rate]
+
+                    if not head:
+                        log("VAC rate unresolved -> wait; hardware rate sweep suppressed")
+                        time.sleep(0.5)
+                        continue
+
+                    queue = list(head)
                     tried = set()
                     while queue:
-                        # 프로브 중에도 오라클 재확인 — 플러시 지연으로 늦게 온
-                        # 진짜 레이트가 있으면 즉시 그쪽으로 점프
                         fresh, fpb = vac_lv_info()
                         if fpb == 0 and LAST_GOOD.get("pb0_skips", 0) < 5:
-                            log("렌더 스트림 소멸(일시정지 추정) — 프로브 중단")
+                            log("VAC sender disappeared during start -> wait")
                             break
                         if not fresh:
                             fresh = vac_current_rate()
-                        if fresh in queue and fresh not in tried:
+
+                        if fresh in RATES and fresh not in tried:
                             rate = fresh
+                            if rate in queue:
+                                queue.remove(rate)
+                            else:
+                                queue = []
                         else:
-                            rate = queue[0]
-                        queue.remove(rate)
+                            rate = queue.pop(0)
+
                         tried.add(rate)
-                        proc, lf = try_start(rate)
+                        if not prepare_native_rate(rate):
+                            log(f"native clock prepare failed: {rate}Hz")
+                            break
+
+                        known_rate = rate in [r for r in (lv_rate, vac_rate, fresh) if r]
+                        proc, lf = try_start(rate, expect_signal=not known_rate)
                         if proc:
                             last_rate = rate
                             silence_since = None
+                            if known_rate:
+                                wait_pipeline_ready()
+                                resumed = tidal_cmd(play=True)
+                                log(f"known VAC rate {rate}Hz -> pipeline ready, TIDAL resume "
+                                    f"{'ok' if resumed else 'unavailable'}")
                             break
+
                     if proc is None:
-                        log("모든 조합 실패 — 15초 냉각")
-                        time.sleep(15)
+                        # Keep the known native clock while TIDAL is present.
+                        # Do not bounce to shared 48k and do not scan unrelated rates.
+                        log("known-rate start failed -> keep clock, retry in 1s")
+                        time.sleep(1.0)
                 else:
                     time.sleep(POLL_IDLE_SEC)
             else:
@@ -919,74 +1145,84 @@ def main():
                     if lf:
                         lf.close()
                     proc, lf = None, None
+                    if not tidal_process_running():
+                        restore_shared_48()
+                    else:
+                        log("Camilla exited while TIDAL active -> keep native clock and retry")
+                        time.sleep(0.5)
                     continue
                 # v0.3: 6초마다 VAC 로그에서 소스 레이트 확인 → 변경 시 재기동
                 now = time.time()
                 if now - LAST_GOOD.get("last_check", 0) > 0.1:
                     LAST_GOOD["last_check"] = now
-                    vac_rate = vac_current_rate()
-                    lv_rate, _lvpb = vac_lv_info()
-                    lv_conf = bool(lv_rate) and lv_rate != last_rate
-                    if lv_conf:
-                        vac_rate = lv_rate     # 케이블 실측이 로그보다 우선
-                    if vac_rate and vac_rate != last_rate and vac_rate in RATES:
-                        # 가드 없음: 디코더 오라클/케이블 실측을 항상 신뢰.
-                        # (신호 기준 스테일 가드는 VAC 내부 SRC가 불일치 중에도 신호를
-                        #  살려두는 탓에 진짜 전환을 영구 기각하는 교착을 만들었음 — 폐기.
-                        #  유령 라인의 헛전환은 드물고 다음 라인에서 자가 복구됨)
-                        log(f"레이트 전환 감지: {last_rate} → {vac_rate}Hz — TIDAL 일시정지 후 재기동")
-                        tidal_cmd(play=False)      # 명시적 정지 (SMTC)
-                        # 정지 관철: 곡 시작 직후(CHANGING) 창에서는 명령이 무시됨(실측)
-                        # → PAUSED(5) 확인까지 재명령. 그동안 구 체인이 살아 있어
-                        #   소리가 계속 나오므로(VAC 내부 SRC) 곡 내용 유실 없음
-                        for i in range(10):
-                            time.sleep(0.12)
-                            stp = tidal_playback_status()
-                            if stp is None or stp == 5:
-                                break
-                            tidal_cmd(play=False)
-                            if i == 1:
-                                log("정지 미반영 — 반영까지 재명령")
-                        stop(proc, lf)
-                        proc, lf = try_start(vac_rate, expect_signal=False)
-                        if proc:
-                            last_rate = vac_rate
-                            silence_since = None
-                            wait_pipeline_ready()  # Running 확인 즉시 재개
-                            tidal_cmd(play=True)   # 명시적 재생 (SMTC)
-                            log("TIDAL 재개")
-                            LAST_GOOD["resume_check"] = time.time()
-                            LAST_GOOD["resume_retry"] = 0
+                    tlog_rate = vac_current_rate()
+                    lv_rate, lv_pb = vac_lv_info()
+
+                    # Hot-switch policy:
+                    # TIDAL metadata can be preloaded, and VAC live rate can flap
+                    # briefly during seek. Switch immediately only when both agree;
+                    # otherwise use conservative fallbacks. TIDAL transport itself
+                    # is never paused/resumed for a rate change.
+                    candidate = None
+                    candidate_source = None
+                    if lv_pb != 0:
+                        if tlog_rate in RATES and lv_rate == tlog_rate:
+                            candidate = tlog_rate
+                            candidate_source = "TIDAL+VAC"
+                        elif tlog_rate in RATES and lv_rate is None:
+                            candidate = tlog_rate
+                            candidate_source = "TIDAL metadata"
+                        elif lv_rate in RATES and tlog_rate not in RATES:
+                            candidate = lv_rate
+                            candidate_source = "VAC live fallback"
+                        # Known-but-disagreeing sources mean preload/transient: hold.
+
+                    if candidate and candidate != last_rate:
+                        if candidate != pending_rate:
+                            pending_rate = candidate
+                            pending_rate_since = now
+                            pending_rate_hits = 1
+                            log(f"rate candidate: {last_rate} -> {candidate}Hz ({candidate_source})")
                         else:
-                            tidal_cmd(play=True)   # 실패 시에도 재생은 복구
-                            log("전환 기동 실패 — TIDAL 재개(구 레이트 경유)")
-                        continue
-                # 재개 검증(SMTC): 0.8초 후 상태가 PAUSED면 재생 재명령
-                # (명시적 명령은 재생 중이면 no-op라 반복해도 무해)
-                rc = LAST_GOOD.get("resume_check")
-                if rc and now - rc > 0.8:
-                    retry = LAST_GOOD.get("resume_retry", 0)
-                    stv = tidal_playback_status()
-                    if stv == 5 and retry < 3:
-                        LAST_GOOD["resume_retry"] = retry + 1
-                        tidal_cmd(play=True)
-                        log(f"재개 미반영(PAUSED) — 재생 명령 재전송 ({retry + 1}회차)")
-                        LAST_GOOD["resume_check"] = now
-                    elif stv is None and now - rc < 3.0:
-                        pass                       # SMTC 판독 불가 → 3초까지 기다렸다 RMS 폴백
-                    elif stv is None:
-                        dbv = camilla_capture_dbfs()
-                        if dbv is not None and dbv < -70 and retry < 2:
-                            LAST_GOOD["resume_retry"] = retry + 1
-                            media_playpause()
-                            log(f"재개 검증 실패(무신호) — 재생 키 재전송 ({retry + 1}회차)")
-                            LAST_GOOD["resume_check"] = now
+                            pending_rate_hits += 1
+
+                        stable_for = now - pending_rate_since
+                        if candidate_source == "TIDAL+VAC":
+                            required_stable, required_hits = 0.0, 1
+                        elif candidate_source == "TIDAL metadata":
+                            required_stable, required_hits = RATE_STABLE_SEC, RATE_STABLE_POLLS
                         else:
-                            LAST_GOOD["resume_check"] = None
-                            LAST_GOOD["resume_retry"] = 0
+                            required_stable, required_hits = RATE_FALLBACK_STABLE_SEC, 3
+
+                        if stable_for >= required_stable and pending_rate_hits >= required_hits:
+                            target_rate = candidate
+                            log(f"hot sample-rate switch: {last_rate} -> {target_rate}Hz "
+                                f"({candidate_source}, {stable_for:.2f}s/{pending_rate_hits} polls); "
+                                "TIDAL transport untouched")
+                            stop(proc, lf)
+                            if not prepare_native_rate(target_rate):
+                                proc, lf = None, None
+                            else:
+                                proc, lf = try_start(target_rate, expect_signal=False)
+
+                            if proc:
+                                last_rate = target_rate
+                                silence_since = None
+                                log("hot-switch pipeline running; playback continues without pause/resume")
+                            else:
+                                log("hot-switch start failed; TIDAL left playing, normal start path will recover")
+
+                            pending_rate = None
+                            pending_rate_since = 0.0
+                            pending_rate_hits = 0
+                            continue
                     else:
-                        LAST_GOOD["resume_check"] = None
-                        LAST_GOOD["resume_retry"] = 0
+                        # Same rate, source disagreement, unknown rate, or sender gap
+                        # (seek): never restart the pipeline and never carry a partial
+                        # candidate across the gap.
+                        pending_rate = None
+                        pending_rate_since = 0.0
+                        pending_rate_hits = 0
                 db = camilla_capture_dbfs()
                 if db is not None:
                     if db < -70:
@@ -995,11 +1231,14 @@ def main():
                             stop(proc, lf)
                             proc, lf = None, None
                             silence_since = None
+                            last_rate = None
+                            restore_shared_48()
                     else:
                         silence_since = None
                 time.sleep(0.1)
     except KeyboardInterrupt:
         stop(proc, lf)
+        restore_shared_48()
         log("수동 종료")
 
 
