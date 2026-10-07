@@ -1,4 +1,4 @@
-# 음감 템플릿: W80 모니터링 보정 (EqAPO W80_Monitoring 변환판, 프리앰프 -7dB 포함)
+# ?? ???: W80 ???? ?? (EqAPO W80_Monitoring ???, ???? -10.5dB)
 devices:
   samplerate: {{RATE}}
   chunksize: 256

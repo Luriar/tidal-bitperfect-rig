@@ -1,2 +1,2 @@
-# M4(Out 1-2) 현재 프로파일 — EQ_스위치 bat로 전환됨
+# M4 default profile: W80 Monitoring
 Include: W80_Monitoring.txt

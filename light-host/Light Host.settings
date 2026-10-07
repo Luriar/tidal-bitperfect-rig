@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PROPERTIES>
+  <VALUE name="icon" val="white"/>
+  <VALUE name="audioDeviceState">
+    <DEVICESETUP deviceType="Windows Audio" audioOutputDeviceName="CABLE Input(VB-Audio Virtual Cable)"
+                 audioInputDeviceName="In 1-2(MOTU M Series)" audioDeviceRate="48000"/>
+  </VALUE>
+  <VALUE name="lastPluginScanPath_VST" val="C:\Program Files\LightHost_Pack;C:\Program Files\Common Files"/>
+  <VALUE name="pluginList">
+    <KNOWNPLUGINS>
+      <PLUGIN name="Auburn Sounds Graillon 2-64" descriptiveName="Graillon 2"
+              format="VST" category="Effect" manufacturer="Auburn Sounds" version="V2.5.0.0"
+              file="C:\Program Files\LightHost_Pack\Auburn Sounds Graillon 2-64.dll"
+              uid="40733132" isInstrument="0" fileTime="18a5a09c332" infoUpdateTime="193b0a772ad"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="Denoiser" format="VST3" category="Fx|Restoration" manufacturer="Bertom"
+              version="1.2.2" file="C:\Program Files\LightHost_Pack\Bertom Denoiser_x64.vst3"
+              uid="2a967a5e" isInstrument="0" fileTime="18a5a09c36c" infoUpdateTime="193b0a73343"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="Lisp x64" descriptiveName="Lisp" format="VST" category="Effect"
+              manufacturer="Sleepy-Time DSP" version="V39.16" file="C:\Program Files\LightHost_Pack\Lisp x64.dll"
+              uid="4c737031" isInstrument="0" fileTime="18a5a09c3b1" infoUpdateTime="193b0a77299"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="LoudMax64" descriptiveName="LoudMax 64bit" format="VST"
+              category="Effect" manufacturer="Thomas Mundt" version="V1.3.5.0"
+              file="C:\Program Files\LightHost_Pack\LoudMax64.dll" uid="4c644d78"
+              isInstrument="0" fileTime="18a5a09c3df" infoUpdateTime="193b0a77286"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="reaeq-standalone" descriptiveName="ReaEQ (ReaPlugs Edition)"
+              format="VST" category="Effect" manufacturer="Cockos" version="V1.1.0.0"
+              file="C:\Program Files\LightHost_Pack\reaeq-standalone.dll" uid="72656571"
+              isInstrument="0" fileTime="18a5a09c413" infoUpdateTime="193b0a77271"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="ReverbSolo" descriptiveName="Acon Digital Reverb SOLO"
+              format="VST" category="Effect" manufacturer="Acon Digital" version="V1.0.3"
+              file="C:\Program Files\LightHost_Pack\ReverbSolo.dll" uid="5256534c"
+              isInstrument="0" fileTime="18a5a09c49f" infoUpdateTime="193b0a77265"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="RX 10 De-click" format="VST3" category="Fx|Restoration"
+              manufacturer="iZotope" version="10.5.0" file="C:\Program Files\Common Files\VST3\iZotope\RX 10 De-click.vst3"
+              uid="d0d9832e" isInstrument="0" fileTime="18d1a5f9440" infoUpdateTime="193b0d466d4"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="RX 10 De-clip" format="VST3" category="Fx|Restoration"
+              manufacturer="iZotope" version="10.5.0" file="C:\Program Files\Common Files\VST3\iZotope\RX 10 De-clip.vst3"
+              uid="f751be09" isInstrument="0" fileTime="18d1a607ea0" infoUpdateTime="193b0d4669c"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="RX 10 De-hum" format="VST3" category="Fx|Restoration" manufacturer="iZotope"
+              version="10.5.0" file="C:\Program Files\Common Files\VST3\iZotope\RX 10 De-hum.vst3"
+              uid="b9c49311" isInstrument="0" fileTime="18d1a603080" infoUpdateTime="193b0d46635"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="RX 10 De-reverb" format="VST3" category="Fx|Restoration"
+              manufacturer="iZotope" version="10.5.0" file="C:\Program Files\Common Files\VST3\iZotope\RX 10 De-reverb.vst3"
+              uid="257b9e43" isInstrument="0" fileTime="18d1a5fced8" infoUpdateTime="193b0d465ac"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="RX 10 Repair Assistant" format="VST3" category="Fx|Restoration"
+              manufacturer="iZotope" version="10.5.0" file="C:\Program Files\Common Files\VST3\iZotope\RX 10 Repair Assistant.vst3"
+              uid="df40698a" isInstrument="0" fileTime="18d1a60ccc0" infoUpdateTime="193b0d46507"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="RX 10 Voice De-noise" format="VST3" category="Fx|Restoration"
+              manufacturer="iZotope" version="10.5.0" file="C:\Program Files\Common Files\VST3\iZotope\RX 10 Voice De-noise.vst3"
+              uid="9afdffcd" isInstrument="0" fileTime="18d1a5fbb50" infoUpdateTime="193b0d462b7"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="StereoToolV3" descriptiveName="StereoTool v3" format="VST"
+              category="Effect" manufacturer="Flux:: sound and picture development"
+              version="V3.0.0.0" file="C:\Program Files\LightHost_Pack\StereoToolV3.vst\Contents\x64\StereoToolV3.dll"
+              uid="66785374" isInstrument="0" fileTime="18a5a09d6eb" infoUpdateTime="193b0a7724b"
+              numInputs="2" numOutputs="2" isShell="0"/>
+    </KNOWNPLUGINS>
+  </VALUE>
+  <VALUE name="lastPluginScanPath_VST3" val="C:\Program Files\LightHost_Pack;C:\Program Files\Common Files\VST3"/>
+  <VALUE name="listWindowPos" val="1032 257 784 628"/>
+  <VALUE name="plugin-order-Denoiser1.2.2VST3" val="2"/>
+  <VALUE name="pluginListActive">
+    <KNOWNPLUGINS>
+      <PLUGIN name="StereoToolV3" descriptiveName="StereoTool v3" format="VST"
+              category="Effect" manufacturer="Flux:: sound and picture development"
+              version="V3.0.0.0" file="C:\Program Files\LightHost_Pack\StereoToolV3.vst\Contents\x64\StereoToolV3.dll"
+              uid="66785374" isInstrument="0" fileTime="18a5a09d6eb" infoUpdateTime="193b0a7724b"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="Denoiser" format="VST3" category="Fx|Restoration" manufacturer="Bertom"
+              version="1.2.2" file="C:\Program Files\LightHost_Pack\Bertom Denoiser_x64.vst3"
+              uid="2a967a5e" isInstrument="0" fileTime="1762d362d70" infoUpdateTime="17740a77639"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="Lisp x64" descriptiveName="Lisp" format="VST" category="Effect"
+              manufacturer="Sleepy-Time DSP" version="V39.16" file="C:\Program Files\LightHost_Pack\Lisp x64.dll"
+              uid="4c737031" isInstrument="0" fileTime="13e4ee76e30" infoUpdateTime="17740a73686"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="reaeq-standalone" descriptiveName="ReaEQ (ReaPlugs Edition)"
+              format="VST" category="Effect" manufacturer="Cockos" version="V1.1.0.0"
+              file="C:\Program Files\LightHost_Pack\reaeq-standalone.dll" uid="72656571"
+              isInstrument="0" fileTime="152049bf620" infoUpdateTime="17740a735c5"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="ATKExpander x64" descriptiveName="ATKExpander" format="VST"
+              category="Effect" manufacturer="MatthieuBrucher" version="V39.116"
+              file="C:\Program Files\LightHost_Pack\ATKExpander x64.dll" uid="6e336c33"
+              isInstrument="0" fileTime="174d7fe3c0f" infoUpdateTime="17740aa7def"
+              numInputs="1" numOutputs="1" isShell="0"/>
+      <PLUGIN name="Auburn Sounds Graillon 2-64" descriptiveName="Graillon 2"
+              format="VST" category="Effect" manufacturer="Auburn Sounds" version="V2.5.0.0"
+              file="C:\Program Files\LightHost_Pack\Auburn Sounds Graillon 2-64.dll"
+              uid="40733132" isInstrument="0" fileTime="175dcfd30b0" infoUpdateTime="17740a736a9"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="ReverbSolo" descriptiveName="Acon Digital Reverb SOLO"
+              format="VST" category="Effect" manufacturer="Acon Digital" version="V1.0.3"
+              file="C:\Program Files\LightHost_Pack\ReverbSolo.dll" uid="5256534c"
+              isInstrument="0" fileTime="156c5945580" infoUpdateTime="17740a73568"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="LoudMax64" descriptiveName="LoudMax 64bit" format="VST"
+              category="Effect" manufacturer="Thomas Mundt" version="V1.3.5.0"
+              file="C:\Program Files\LightHost_Pack\LoudMax64.dll" uid="4c644d78"
+              isInstrument="0" fileTime="172c7315ac0" infoUpdateTime="17740a73618"
+              numInputs="2" numOutputs="2" isShell="0"/>
+      <PLUGIN name="RX 10 Voice De-noise" format="VST3" category="Fx|Restoration"
+              manufacturer="iZotope" version="10.5.0" file="C:\Program Files\Common Files\VST3\iZotope\RX 10 Voice De-noise.vst3"
+              uid="9afdffcd" isInstrument="0" fileTime="18d1a5fbb50" infoUpdateTime="193b0d462b7"
+              numInputs="2" numOutputs="2" isShell="0"/>
+    </KNOWNPLUGINS>
+  </VALUE>
+  <VALUE name="plugin-order-Lisp x64V39.16VST" val="3"/>
+  <VALUE name="plugin-order-reaeq-standaloneV1.1.0.0VST" val="4"/>
+  <VALUE name="plugin-order-ATKExpander x64V39.116VST" val="5"/>
+  <VALUE name="plugin-order-Auburn Sounds Graillon 2-64V2.5.0.0VST" val="7"/>
+  <VALUE name="plugin-order-ReverbSoloV1.0.3VST" val="8"/>
+  <VALUE name="plugin-order-LoudMax64V1.3.5.0VST" val="9"/>
+  <VALUE name="plugin-bypass-Auburn Sounds Graillon 2-64V2.5.0.0VST" val="1"/>
+  <VALUE name="plugin-bypass-ReverbSoloV1.0.3VST" val="1"/>
+  <VALUE name="plugin-bypass-ATKExpander x64V39.116VST" val="0"/>
+  <VALUE name="plugin-order-RX 10 Voice De-noise10.5.0VST3" val="1"/>
+  <VALUE name="plugin-bypass-Denoiser1.2.2VST3" val="1"/>
+  <VALUE name="plugin-state-RX 10 Voice De-noise10.5.0VST3" val="1118.VMjLgTEA...OVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9bSM13xR1XCTtfjKt3hKtTiPt3hKC4hPt3hYG01bsQyUS0jRLAkK2HiMsgFS2byXiYFTmYEcx3TcvIyLLAyJLECY4XGNVoUV2wVdPIzTHMyaoM0JzUlKyU0aVAUPgQCS0LyTqQWRxYScikUdr0jc3LFTHo1cOQjXEIVbB0jUQQkYAUSXtYSdD0VS3olMngWQXwjZNMUTEIFZ23TZ0IGY1sTRxoVSrQFa1kWRRIEV2LkZ4HEbZsTQzMycAYUYYkScKgWcCk1Yo8TY04RXrQlSpEzYtb0b4gTcmciXqMjXA0jQpsBYT8VZW8zP2fFaYACQVQSQtMURm8jL2DictkVURozJvIUSyLUSgEUaucya04lPvfkXH0FSqEja0YyTnQkdg4hdHYFRzjULywFUjYFT1AWQooTVBcSMXYCRJcDTswFMk4VdqglKJEWLmY2JCYGLZcWbtHzRz8FSiQzZu4RRZM2cvMzSqTCVzAmU2fULPYkSmI1RMwTRDMVPyzlZ0USPMQDZTkWbKc0Q2QjZ0DDaUUmQRYEYMAkdqYFSNsFb3PlXBICTZYzRRoVdtnWRus1RqQkP1zzJzDiZzHERjQmYzjlQNM1JqXWMvLUdXYDLO0jLwH1J4o2U1DlLvfmd3QTXNYmP1zDVtPlYvPmTuU0RPQiKsQGVSElbKEiQ1rFZwkVXSkmdwflThEFTuE1UKYCYzgiMYEyQoM1TmoWVW8ldzUja5MjLvb2c44TSh4jcw.Sdv01a1PmTYUmUlI0RSkGcjwFVKwDcscUYG0VPNQlMJslSyEzZVEyX2g0SxkVZgU1UxEWaoMVQTYEZyLmZyMWbXcyTBMGdvomM2YkdNMCcHIkXIMWVVQGMZAyb2cEZBUCMhcSa3MkMUEDcyE1XMIyRggzTYIyP0fEYTglRysRbt.SXkAEbHAEZYc0P4nERR4VdBIDZAgiRXMVP3.GM0HTTssla5IGQvACQuMUVTElcpQ1ZRMmPM0DSsoEZpYDbkQzYVQFQVMGVKU2QKQ0aC01b0AkTz4jYSYCYlACbRkFYyMWb2QzTwkCVxUWZj0lVwIlZrQGRKsBcPoEUxnVcwgGY3E2PLIDcAkCRpETU1kkVZMkLKUFMnkmTrIUam4lXEgTZDwjT4DVTKAERWoTRrQjQq4TaHYlXMg2QTAEY1A0QJc0ZrUiKWkTRvoWNCYTRRcCMPUSVYQ1asUTXtbkMyUzLCciXwzjYLYVR4DmUxIDNAAGaHgkYpYWauETTvISUU0jUzUFNGsFdFUDNr8TbgcSVik1SwElbkAWX58FZqTULsYWNDgWYRcUcTgVXTEjdEkiXTUDLBsVcSo0a4glSqLjcA4RaBMFOujzPu0Fbu4VYtQmO7jTQjkFcC8lazI2arwVYx4CLtvyKIUDYoQ2Pu4Fcx8FarUlb9vyKVMEUy.Ea0cVZtMEcgQWY9.."/>
+  <VALUE name="plugin-state-Denoiser1.2.2VST3" val="713.VMjLg.r....OVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9PCNv3BTEwlXmAiUYoWUrIVdA4hKAImKTETRUAUSAAkKBolQY4BQtDTQhQEStf0UXIWUWkkKDAkPD4hKt3hKx8zZqfySt3RUPIUQTMkKDYlKuEkQtDDTPEzQIMjKwTjQgASUF4RPp4RPt3hKt3hKt3hYqLjKPUjZTEDLD4RPHAkVpEDTtPDU1EUdtX1XmcmUisVPP4RRP4hKt3hKt3hKtLyJt3BUAkTUP0TPP4hPpYTVtPjKAUjXD0jKXcEVxU0UY4BQPIDQt3hKt3hKt3hK47jKtTETRUDUS4BQl4xaQYjKAAETAcTUC4RLEYTXvTkQtDjZtDjKt3hKt3hKtX1JC4BTEoFUAACQtDDRPokZAAkKJQkKRkzXDIkQIUUTQEjYic1cVM1ZAAkKIAkKt3hKt3hK0UkdtDjKTETRUAUSAAkKBolQY4BQPETQlQDUFEjYic1cVM1ZAAkKIAkKt3hKt3hKt3hKt3hKTETRUAUSAAkKBolQY4BQPITQ1o2TWkkZTUTQE4RLEYTXvTkQtDjZtDjKt3hKt3hKtzTPD4BTEoFUAACQtDDRPokZAAkKEQkKSAUVD4RLEYTXvTkQtDjZtDjKt3hKt3hKt3hKt3BTEoFUAACQtDDRPokZAAkKHQkcTQ0cTIkSyQjKwTjQgASUF4RPp4RPt3hKt3hKt3hKt3hKPUjZTEDLD4RPHAkVpEDTtfDUtTERIUUTScFQtDSQFEFLUYjKAolKA4hKt3hYGUDcNsxPt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9.."/>
+  <VALUE name="plugin-state-Lisp x64V39.16VST" val="272.CMlaKA....fQ3IzZ....AvzbvEC..bBD....A...........................................................................................................................................................................CMlaKA....fQ3MzZ....AvzbvEC..bBD....OPTYlEVcrQG...........................fO+O.79XKH74y+5VA...............vO.B.......3SlYp4O2jMi+.H.......fOOxUJ.....3CoRlD"/>
+  <VALUE name="plugin-state-reaeq-standaloneV1.1.0.0VST" val="320.CMlaKA....fQBMDZ....AHWYkEG..P.S....A...............................................................................................................................................................................fFB....A.........D............PV.A........+O..........T.H....D............rb.A........+O..........T.H....D............zi.A........+O..........T.A....D...........f3r.A........+O..........T.A....D.............7+......"/>
+  <VALUE name="plugin-state-ATKExpander x64V39.116VST" val="232.CMlaKA....fQ3IzZ....A31LrMC..bBc....A...........................................................................................................................................................................CMlaKA....fQ3MzZ....A31LrMC..bBc....EzB...................................fOf8KY+3wKY6SjqWnOFn9c9.bW.A"/>
+  <VALUE name="plugin-state-Auburn Sounds Graillon 2-64V2.5.0.0VST" val="7852.CMlaKA....fQ3IzZ....A.zbwHC..j.w....k...........................................................................................................................................................................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lPTYlEVcrQG...........................vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....................+.H..7S.xLM.....+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XhTuI1azAxPuImbkMFc....................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+.........vO.B.......7Cf..vOAHyz9vDyM+Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzAxPfzVXp8lb.................7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL27O.B.......7Cf........+.H..7Cf........+.H.......vO.B.......7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHCMBHsElZuIG...............vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby+.H..7Cf........+.H.......vO.B..+.H.......vO.B.......7Cf.............................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfPDHsElZuIG.................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyMC....vO.B..+.H.......vO.B.......7Cf..vO.B.......7Cf........+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzABQi.Rago1axA...............7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL27O.B.......7Cf..vO.B.......7Cf........+.H..7Cf........+.H.............................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHEARago1axA................vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby.....7Cf........+.H..7Cf........+.H.......vO.B..+.H.......vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfXDHsElZuIG.................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyM+Cf........+.H.......vO.B..+.H.......vO.B.......7Cf..vO.B............................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzAhQi.Rago1axA...............7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL2L.....+.H.......vO.B.......7Cf..vO.B.......7Cf........+.H..7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHGARago1axA................vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby.....7Cf........+.H.......vO.B..+.H.......vO.B.......7Cf..vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfbzHfzVXp8lb................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyM+Cf..vO.B.......7Cf........+.H.......vO.B..+.H.......vO.B............................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzARPfzVXp8lb.................7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL27O.B.......7Cf........+.H.......vO.B..+.H.......vO.B.......7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHAMBHsElZuIG...............vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby+.H.......vO.B..+.H.......vO.B.......7Cf........+.H..7Cf.............................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfHDHsElZuIG.................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyMC....vO.B.......7Cf..vO.B.......7Cf........+.H.......vO.B..+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzAxPfzVZt8lb.................7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL27O.B.......7Cf..vO.B.......7Cf........+.H..7Cf........+.H.............................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHCMBHsklauIG...............vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby.....7Cf........+.H..7Cf........+.H.......vO.B..+.H.......vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfPDHsklauIG.................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyM+Cf........+.H.......vO.B..+.H.......vO.B.......7Cf..vO.B............................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzABQi.Rao41axA...............7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL2L.....+.H.......vO.B.......7Cf..vO.B.......7Cf........+.H..7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHEARao41axA................vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby+.H.......vO.B.......7Cf........+.H..7Cf........+.H.......vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfXDHsklauIG.................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyM+Cf..vO.B.......7Cf........+.H.......vO.B..+.H.......vO.B............................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzAhQi.Rao41axA...............7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL2L.....+.H..7Cf........+.H.......vO.B.......7Cf..vO.B.......7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHGARao41axA................vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby+.H.......vO.B..+.H.......vO.B.......7Cf........+.H..7Cf.............................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfbzHfzVZt8lb................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyMC....vO.B.......7Cf..vO.B.......7Cf........+.H.......vO.B..+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIC8lbxU1XzARPfzVZt8lb.................7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...vOlYlY+.H..7C...vO.B..+DfLS6CSL27O.B.......7Cf........+.H..7Cf........+.H.......vO.B.......7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLzaxIWYiQGHAMBHsklauIG...............vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....+XlYl8Cf..vO....+.H..7S.xLsOLwby+.H..7Cf........+.H.......vO.B..+.H.......vO.B.......7Cf.............................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxPuImbkMFcfHDHsklauIG.................+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....7iYlY1O.B..+....7Cf..vOAHyz9vDyMC....vO.B..+.H.......vO.B.......7Cf..vO.B.......7Cf........+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIAQFYfLUchART0klazA...................7SFYpI.....................+.H..7SFYpI.....+TyNuC...............7Cf..vO.........3SkU8iOLwby..........vO.B..+DfLSC....vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....lLUZsAGakAxSiQWX1Ulb..................fOYlol.....................7Cf..vOnT+v9jYlZ9SM67N...............vO.B..+...............+.H.............+.H..7S.xLM.....+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XBU04VYxABQuUmXrUlb....................+.........................vOlYlY+LyLy3Cf..vO0ry6................+.H..7C.........+.fF2.....vO.B..+LyLy7Cf..vOAHyz9.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIY8VctcVYxAxTvUVYigF..................7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7CCL2L...............vO.B..+DfLSC....vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....l7jarkGHo4FHFUGarAhckI2bo8la..........vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....................+.H..7S.xLM.....+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxStwVdfjlafXTcrwFH1Ulbyk1atA..........+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....................7Cf..vOAHyz.....7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIO4Fa4ARZtAhQ0wFafXWYxMWZu4F..........7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...................vO.B..+DfLSC....vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....l7jarkGHo4FHFUGarAhckI2bo8la..........vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....................+.H..7S.xLM.....+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B.......................LzXtsD.....Fg2PqA...D.PyEiL..PBDC...XxStwVdfjlafXTcrwFH1Ulbyk1atA..........+TyNuC....................vO.B............vO0ry6................+.H..7C.........+....................7Cf..vOAHyz.....7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H.......................vPi41R.....XDdCsF...P..MWLx...IPL...fIO4Fa4ARZtAhQ0wFafXWYxMWZu4F..........7SM67N.....................+.H.............+TyNuC...............7Cf..vO.........7C...................vO.B..+DfLSC....vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf........................CMlaKA....fQ3MzZ....A.zbwHC..j.w....l7jarkGHo4FHFUGarAhckI2bo8la..........vO0ry6.....................7Cf.............7SM67N...............vO.B..+.........vO....................+.H..7S.xLM.....+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B..+.H..7Cf..vO.B........................"/>
+  <VALUE name="plugin-state-ReverbSoloV1.0.3VST" val="201.CMlaKA....fQBMDZ....AHkUSwD...vY....................................................................................................................................................................................o3zSCEDSSYkTC.P..H....f.....uuSs.E........jv9bzPInzqDbH."/>
+  <VALUE name="plugin-state-LoudMax64V1.3.5.0VST" val="228.CMlaKA....fQ3IzZ....AvDYMgG...P.....A...........................................................................................................................................................................CMlaKA....fQ3MzZ....AvDYMgG...P.....DPTYlEVcrQG...........................fOLyby+.H............."/>
+  <VALUE name="plugin-order-StereoToolV3V3.0.0.0VST" val="6"/>
+  <VALUE name="plugin-state-StereoToolV3V3.0.0.0VST" val="2158.CMlaKA....fQBMDZ....AXFdSQG...P.....A.............................................................................................................................................................................vANaB...vd.XD.4.PM.XD.4..M.TC.v.PK.bC.DAfP.DD.s..M.HF.1..Y.zB.BAPQ.fC.3.PK.XD.w.fP.HC.v..Q.DC.BA.N.LC.BAvL.zG.O....H....f..........7+++++++++++++++2++++O.....B....D.....A....................................B....7YgMFfA......................fO.C....................D.....eVXiAX....P.....A............3CP.....................A....P+++++.....H....P.....D....................................H....vmE1X.F.......................9.L....................P.....7YgMFfA....A....D............fO.A....................D.....8++++C....f.....A....P....................................f.....eVXiAX.......................3Cv.....................A....vmE1X.F....D....P.............9.D....................P.....H....fI....6AvM.XC.w..M.bC.DAvL.fC.s.vP.LC.FAfP.zB.z..N.PD.4.PK.fC.FA.N.TC.s.vM.DC.FAvP.PD.DAvM.HC.BAvL.PD.v.Pe.H....fI....6AvM.XC.w..M.bC.DAvL.fC.s.vP.LC.FAfP.zB.z..N.PD.4.PK.fC.FA.N.TC.s.vM.DC.FAvP.PD.DAvM.HC.BAvL.PD.v.Pe.r....fA....BAPd..G.gAvb.LG.l....rG.AA.L.LC.y..N.XC.v.vM.zB.AAfL.TD.BAPK.PC.z..N.PD.s.PN.DC.w.vP.zB.1.fM.XC.v.fQ.HC.4.PQ.DC.y..Q.bC.8A....3O..........PC....IAfa..G.0A.c.bD.gAPZ.3F.LAPY.XF.zAfI....6AfP.LC.3.fL..C.x.PL.TD.s.fM.TD.x.vM.zB.z.fL.LD.w.PK.jC.0..N.bC.s.PQ.jC.x.PL.jC.DAfL.PC.1.PQ.HD.EAPe.................7....PR.3F.1APY.HG.zA.T.fF.gAvb.TF.LAPY.XF.zAfI....6A.L.jC.x.fQ.PD.w.fP.fC.s..M.TC.EAPL.zB.z.PM..C.x.PK.fC.z..N.PD.s.fL.LC.EAPP.TC.x.vL.jC.x.PM.bC.z.Pe.................b.....T.DF.tA.S.TF.lA.c.XB...vd.TC.w.PP.DD.v.vM..C.EAPK.HC.BAPP.TD.s..M.PD.4..Q.zB.4..Q.fC.FAPK.PC.FAPM.TD.CAfP.LC.CAfM.HC.y.PP.zG..............frvN....jD.tA.b.TG.zAvQ.DF.oAfa.HE.oAvY.fF.zAfI....6APM.PD.4.fL.HC.4.fL.fC.s..M.TC.x.PM.zB.z.PL.jC.y.PK.jC.BAPM.LC.s.PP.HC.z..L.PD.2.PP.XC.x.fQ.LD.4.Pe..................A...PR.3F.1APY.HG.zA.T.fF.gAvb.TF.RAPZ.bF.nA.c.XB...vd.fC.CAvM.PD.3.vP.jC.DAPK.HC.BAPM.PC.s..M.bC.0.PQ.zB.BAvM.TD.EAPK.HC.4..L.HD.2.fL.LC.w.PN.fC.CAfL.zG.................H.....E.gAfa.HE.oAvY.fF.zAfI....6AfL.DD.v.fL.LD.4.fL.DC.s.fM.LC.FAPQ.zB.z..L.LC.EAPK.fC.EAPL.PD.s.PL.XD.1.fP.PC.2.vL.DC.CAvP.DD.1.Pe....HKD..frP...xBs....vT.PG.kAfb.TF.uAvU.jF.jA.c.fF.l....rG.v.vP.HC.y.PL.HC.1.fP.zB.v.fL.PC.z.PK.PC.FA.M..C.s.fP.DC.CAfQ.zB.4.fQ.fC.DAvP.DD.4.fQ.DD.DAPL.PD.8A................vA....BAPX.vF.gAfa.LF.kAfI....6APL.PC.w.vL.fC.v.PN.DD.s.fQ.HC.3.fP.zB.z..L.XC.AAPK.fC.BAPN..C.s.fP.bC.x.vM.LD.0.vM.bC.BA.Q.TD.v.Pe.................HA...PS.7F.xA.b.fF.oAfa.bF.AAPc.PG.uAPa.DF.zAPZ.7F.tAfI....6AvP.TD.z..L.PD.z..M.XC.s..L.bC.DAvP.zB.z.PL..C.z.PK.fC.DAvL.bC.s.PP..C.EAvP.HC.EA.L.HC.0.vM.PC.BAPe.................f....PS.7F.xA.b.fF.oAfa.bF.l....rG.EAvM.XD.CAPQ.jC.AA.L.zB.2.PN.TD.w.PK.PC.3.vM.fC.s.fP.jC.z.fP.zB.0..M.LD.BAPL.DD.DA.M.DD.CAvP.TD.8A............................"/>
+</PROPERTIES>

@@ -1,8 +1,9 @@
-# 음감 템플릿: W80 모니터링 보정 (EqAPO W80_Monitoring 변환판, 프리앰프 -7dB 포함)
+# ?? ???: W80 ???? ?? (EqAPO W80_Monitoring ???, ???? -10.5dB)
 devices:
   samplerate: {{RATE}}
-  chunksize: 4096
+  chunksize: 256
   queuelimit: 16
+  volume_ramp_time: 2.0
   capture:
     type: Wasapi
     channels: 2
@@ -17,7 +18,7 @@ filters:
   preamp:
     type: Gain
     parameters:
-      gain: -7.0
+      gain: -10.5
   eq1_ls105:
     type: Biquad
     parameters:

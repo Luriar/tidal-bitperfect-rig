@@ -10,3 +10,5 @@ validate_out.txt
 validate_console.txt
 stage.log
 git_setup.log
+git_push.bat
+open_github.bat
