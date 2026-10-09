@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-09 ? Hidden MOTU sample-rate controls
+
+- TIDAL/native-to-shared rate changes no longer call `ShowWindow(..., 4)` on the MOTU control panel.
+- Audio clock script keeps the MOTU window hidden while using UI Automation.
+- Always collapses rate/buffer dropdowns in `finally`, including on failure, to prevent orphan popups / desktop ghosting.
+- Unchanged-rate transitions skip expanding the sample-rate dropdown entirely.
+- No change to W80, CamillaDSP buffers, native rates or the shared 48 kHz design.
+- Static PowerShell parse and live/repo file hash checks passed; real TIDAL cross-rate playback still needs confirmation.
+
 ## 2026-10-07 — Native/seek 안정화
 
 - TIDAL 재생 중 소스 샘플레이트를 MOTU ASIO가 직접 소유하도록 native clock 전환 로직 정리.

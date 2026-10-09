@@ -132,8 +132,8 @@ $script:hw=[IntPtr]::Zero
 },[IntPtr]::Zero)|Out-Null
 if($script:hw -eq [IntPtr]::Zero){ throw 'MOTU window not found' }
 
-[MWinClock]::ShowWindow($script:hw,4)|Out-Null
-Start-Sleep -Milliseconds 500
+# MOTU UIAutomation works on its hidden main window; never show/focus the app.
+[MWinClock]::ShowWindow($script:hw,0)|Out-Null
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 $w=[System.Windows.Automation.AutomationElement]::FromHandle($script:hw)
@@ -147,10 +147,15 @@ $sync=Get-El 'lockWaveSR'
 $low=Get-El 'useLowestLatencySafetyOffsets'
 if(-not $combo -or -not $buffer -or -not $sync){ throw 'MOTU controls not found' }
 
+# Always dismiss ComboBox popups, even if the item selection fails.
+$rateMenu=$null
+$bufferMenu=$null
+try {
 $spat=$combo.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
 $cur=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
 if($cur -ne [string]$Rate){
   $ep=$combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+  $rateMenu=$ep
   $ep.Expand(); Start-Sleep -Milliseconds 250
   $cn=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,[string]$Rate)
   $item=$combo.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cn)
@@ -165,6 +170,7 @@ $bsp=$buffer.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pat
 $bcur=(($bsp.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
 if($bcur -ne '2048'){
   $bep=$buffer.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+  $bufferMenu=$bep
   $bep.Expand(); Start-Sleep -Milliseconds 200
   $bn=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'2048')
   $bi=$buffer.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$bn)
@@ -177,7 +183,13 @@ if($low){
   $ltp=$low.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
   if($ltp.Current.ToggleState.ToString() -eq 'On'){ $ltp.Toggle(); Start-Sleep -Milliseconds 300 }
 }
-[MWinClock]::ShowWindow($script:hw,0)|Out-Null
+ } finally {
+  foreach($menu in @($bufferMenu,$rateMenu)) {
+    if($null -ne $menu){ try { $menu.Collapse() } catch { } }
+  }
+  # Keep both MOTU window and its drop-downs out of the desktop.
+  [MWinClock]::ShowWindow($script:hw,0)|Out-Null
+}
 
   # Keep current VAC Line 1 render/capture endpoints aligned to the requested rate.
   $vacIds=Get-ActiveAudioEndpointIds '^Line 1\(Virtual Audio Cable\)$'
