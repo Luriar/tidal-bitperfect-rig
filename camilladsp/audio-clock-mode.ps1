@@ -154,28 +154,26 @@ try {
 $spat=$combo.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
 $cur=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
 if($cur -ne [string]$Rate){
-  $ep=$combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
-  $rateMenu=$ep
-  $ep.Expand(); Start-Sleep -Milliseconds 250
-  $cn=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,[string]$Rate)
-  $item=$combo.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cn)
-  if(-not $item){ $item=$w.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cn) }
-  if(-not $item){ throw "MOTU rate item $Rate not found" }
+  # WPF ItemContainerPattern resolves an off-screen item without expanding the
+  # ComboBox. SelectionItem.Select directly updates SelectedItem; no popup.
+  $rateItems=$combo.GetCurrentPattern([System.Windows.Automation.ItemContainerPattern]::Pattern)
+  $item=$rateItems.FindItemByProperty($null,[System.Windows.Automation.AutomationElement]::NameProperty,[string]$Rate)
+  if(-not $item){ throw "MOTU rate item $Rate unavailable in hidden selector" }
   $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
   Start-Sleep -Milliseconds 900
+  $selected=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
+  if($selected -ne [string]$Rate){ throw "MOTU hidden rate selection failed: wanted $Rate got $selected" }
 }
 if(-not $Shared){ Write-Output "NATIVE_RATE_ALIGNED rate=$Rate previous=$cur" }
 # Buffer 2048
 $bsp=$buffer.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
 $bcur=(($bsp.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
 if($bcur -ne '2048'){
-  $bep=$buffer.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
-  $bufferMenu=$bep
-  $bep.Expand(); Start-Sleep -Milliseconds 200
-  $bn=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,'2048')
-  $bi=$buffer.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$bn)
-  if(-not $bi){ $bi=$w.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$bn) }
-  if($bi){ $bi.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select(); Start-Sleep -Milliseconds 500 }
+  # Unlike the sample-rate items, MOTU's virtualized buffer items require
+  # Realize(), which EXPANDS a visible popup. Do not trigger that during playback.
+  $warning="MOTU buffer mismatch current=$bcur expected=2048; popup-free switch left buffer unchanged"
+  Write-Warning $warning
+  "$(Get-Date -Format o) $warning" | Add-Content -Encoding UTF8 'C:\CamillaDSP\audio-clock-mode.log'
 }
 $tp=$sync.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
 if($tp.Current.ToggleState.ToString() -eq 'Off'){ $tp.Toggle(); Start-Sleep -Milliseconds 300 }

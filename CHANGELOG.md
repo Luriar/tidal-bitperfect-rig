@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-09 ? Popup-free MOTU rate selection
+
+- Replaced `ComboBox.Expand()` with `ItemContainerPattern.FindItemByProperty` + `SelectionItem.Select` for rate changes.
+- Verified a hidden 48 kHz selection kept the sample-rate dropdown collapsed; full cross-rate playback is pending user verification.
+- MOTU buffer menu can expand when virtualized items are realized; never open it during automatic switches. Warn and log if buffer differs from the validated 2048 setting.
+- W80 EQ, 48 kHz shared behavior, device selection and native audio pipeline are unchanged.
+
 ## 2026-10-09 ? Hidden MOTU sample-rate controls
 
 - TIDAL/native-to-shared rate changes no longer call `ShowWindow(..., 4)` on the MOTU control panel.
