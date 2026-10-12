@@ -1,4 +1,4 @@
-param(
+﻿param(
   [Parameter(Mandatory=$true)][int]$Rate,
   [switch]$Shared
 )
@@ -109,6 +109,9 @@ public static class MWinClock {
  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h,out uint p);
  [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr h,StringBuilder s,int n);
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int n);
+ [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW")] public static extern IntPtr GetWindowLongPtr(IntPtr h,int index);
+ [DllImport("user32.dll",EntryPoint="SetWindowLongPtrW")] public static extern IntPtr SetWindowLongPtr(IntPtr h,int index,IntPtr value);
+ [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h,IntPtr insertAfter,int x,int y,int width,int height,uint flags);
 }
 "@
 
@@ -133,6 +136,16 @@ $script:hw=[IntPtr]::Zero
 if($script:hw -eq [IntPtr]::Zero){ throw 'MOTU window not found' }
 
 # MOTU UIAutomation works on its hidden main window; never show/focus the app.
+# Prevent the hidden MOTU control window from receiving foreground activation while
+# UIAutomation selects native/shared sample rates; avoid affecting the audio driver.
+$originalExStyle=[MWinClock]::GetWindowLongPtr($script:hw,-20).ToInt64()
+$noActivate=0x08000000L
+if(($originalExStyle -band $noActivate) -eq 0) {
+  [void][MWinClock]::SetWindowLongPtr($script:hw,-20,[IntPtr]($originalExStyle -bor $noActivate))
+  [void][MWinClock]::SetWindowPos($script:hw,[IntPtr]::Zero,0,0,0,0,[uint32]0x233)
+}
+$verifiedExStyle=[MWinClock]::GetWindowLongPtr($script:hw,-20).ToInt64()
+if(($verifiedExStyle -band $noActivate) -eq 0){ Write-Warning 'MOTU hidden control window NOACTIVATE style was not accepted' }
 [MWinClock]::ShowWindow($script:hw,0)|Out-Null
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
@@ -159,7 +172,14 @@ if($cur -ne [string]$Rate){
   $rateItems=$combo.GetCurrentPattern([System.Windows.Automation.ItemContainerPattern]::Pattern)
   $item=$rateItems.FindItemByProperty($null,[System.Windows.Automation.AutomationElement]::NameProperty,[string]$Rate)
   if(-not $item){ throw "MOTU rate item $Rate unavailable in hidden selector" }
+  try {
   $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+} catch {
+  # WPF may return an unrealized item for a collapsed/hidden ComboBox.
+  # Realize only after direct selection fails, without expanding the whole menu.
+  $item.GetCurrentPattern([System.Windows.Automation.VirtualizedItemPattern]::Pattern).Realize()
+  $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+}
   Start-Sleep -Milliseconds 900
   $selected=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
   if($selected -ne [string]$Rate){ throw "MOTU hidden rate selection failed: wanted $Rate got $selected" }
