@@ -109,6 +109,9 @@ public static class MWinClock {
  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h,out uint p);
  [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr h,StringBuilder s,int n);
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int n);
+ [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
+ [DllImport("user32.dll")] public static extern IntPtr GetWindow(IntPtr h,uint command);
+ [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr h,StringBuilder s,int n);
  [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW")] public static extern IntPtr GetWindowLongPtr(IntPtr h,int index);
  [DllImport("user32.dll",EntryPoint="SetWindowLongPtrW")] public static extern IntPtr SetWindowLongPtr(IntPtr h,int index,IntPtr value);
  [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h,IntPtr insertAfter,int x,int y,int width,int height,uint flags);
@@ -160,29 +163,67 @@ $sync=Get-El 'lockWaveSR'
 $low=Get-El 'useLowestLatencySafetyOffsets'
 if(-not $combo -or -not $buffer -or -not $sync){ throw 'MOTU controls not found' }
 
-# Always dismiss ComboBox popups, even if the item selection fails.
+# Both selectors must be collapsed even if WPF selection throws. The old
+# cleanup loop iterated over two null variables and never closed anything.
 $rateMenu=$null
 $bufferMenu=$null
+try { $rateMenu=$combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern) } catch { }
+try { $bufferMenu=$buffer.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern) } catch { }
+function Dismiss-MotuSelectorPopups {
+  foreach($menu in @($bufferMenu,$rateMenu)){
+    if($null -ne $menu){
+      try {
+        if($menu.Current.ExpandCollapseState -eq [System.Windows.Automation.ExpandCollapseState]::Expanded){
+          $menu.Collapse()
+        }
+      } catch { Write-Warning "MOTU selector collapse failed: $($_.Exception.Message)" }
+    }
+  }
+  # WPF can leave a separate HWND popup visible after the ComboBox closes.
+  # Hide only anonymous WPF windows owned by this MOTU settings window.
+  try {
+    [MWinClock]::EnumWindows({
+      param($h,$l)
+      if($h -eq $script:hw){return $true}
+      [uint32]$otherProcId=0
+      [MWinClock]::GetWindowThreadProcessId($h,[ref]$otherProcId)|Out-Null
+      if($otherProcId -ne $mp.Id){return $true}
+      if([MWinClock]::GetWindow($h,4) -ne $script:hw){return $true}
+      if(-not [MWinClock]::IsWindowVisible($h)){return $true}
+      $className=New-Object System.Text.StringBuilder 128
+      [MWinClock]::GetClassName($h,$className,$className.Capacity)|Out-Null
+      if($className.ToString().StartsWith('HwndWrapper[')){
+        [MWinClock]::ShowWindow($h,0)|Out-Null
+      }
+      return $true
+    },[IntPtr]::Zero)|Out-Null
+  } catch { Write-Warning "MOTU owned popup cleanup failed: $($_.Exception.Message)" }
+}
+Dismiss-MotuSelectorPopups
 try {
 $spat=$combo.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
 $cur=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
 if($cur -ne [string]$Rate){
-  # WPF ItemContainerPattern resolves an off-screen item without expanding the
-  # ComboBox. SelectionItem.Select directly updates SelectedItem; no popup.
-  $rateItems=$combo.GetCurrentPattern([System.Windows.Automation.ItemContainerPattern]::Pattern)
-  $item=$rateItems.FindItemByProperty($null,[System.Windows.Automation.AutomationElement]::NameProperty,[string]$Rate)
-  if(-not $item){ throw "MOTU rate item $Rate unavailable in hidden selector" }
-  try {
-  $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
-} catch {
-  # WPF may return an unrealized item for a collapsed/hidden ComboBox.
-  # Realize only after direct selection fails, without expanding the whole menu.
-  $item.GetCurrentPattern([System.Windows.Automation.VirtualizedItemPattern]::Pattern).Realize()
-  $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
-}
-  Start-Sleep -Milliseconds 900
-  $selected=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
-  if($selected -ne [string]$Rate){ throw "MOTU hidden rate selection failed: wanted $Rate got $selected" }
+  # Select without Expand/Realize; both can surface a detached WPF popup.
+  # A stale UIA element may throw after the driver actually changed rate,
+  # so re-read the selection before attempting one fresh direct selection.
+  $selected=$cur
+  $selectionError=$null
+  for($attempt=1; $attempt -le 2; $attempt++){
+    try {
+      $rateItems=$combo.GetCurrentPattern([System.Windows.Automation.ItemContainerPattern]::Pattern)
+      $item=$rateItems.FindItemByProperty($null,[System.Windows.Automation.AutomationElement]::NameProperty,[string]$Rate)
+      if(-not $item){throw "MOTU rate item $Rate unavailable in hidden selector"}
+      $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
+    } catch { $selectionError=$_.Exception.Message }
+    Start-Sleep -Milliseconds 450
+    try {
+      $spat=$combo.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
+      $selected=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
+    } catch { $selectionError=$_.Exception.Message }
+    if($selected -eq [string]$Rate){break}
+  }
+  if($selected -ne [string]$Rate){throw "MOTU hidden rate selection failed: wanted $Rate got $selected; lastError=$selectionError"}
 }
 if(-not $Shared){ Write-Output "NATIVE_RATE_ALIGNED rate=$Rate previous=$cur" }
 # Buffer 2048
@@ -202,9 +243,7 @@ if($low){
   if($ltp.Current.ToggleState.ToString() -eq 'On'){ $ltp.Toggle(); Start-Sleep -Milliseconds 300 }
 }
  } finally {
-  foreach($menu in @($bufferMenu,$rateMenu)) {
-    if($null -ne $menu){ try { $menu.Collapse() } catch { } }
-  }
+  Dismiss-MotuSelectorPopups
   # Keep both MOTU window and its drop-downs out of the desktop.
   [MWinClock]::ShowWindow($script:hw,0)|Out-Null
 }
