@@ -98,155 +98,44 @@ foreach($id in $ids){
 }
 if($setOk -eq 0){throw 'Failed to update every active MOTU endpoint'}
 
-# Set the MOTU hardware selector to the same rate, ensure Sync is ON.
+# Rate is set via Windows audio device format above. ASIO owns native TIDAL clock.
+# WPF selector UIA raises virtualized selection exceptions, opens MOTU windows,
+# and steals keyboard focus. Never automate that interface while unattended.
 Add-Type -TypeDefinition @"
 using System;
-using System.Text;
 using System.Runtime.InteropServices;
 public static class MWinClock {
- [DllImport("user32.dll")] public static extern bool EnumWindows(EnumWindowsProc p,IntPtr l);
  public delegate bool EnumWindowsProc(IntPtr h,IntPtr l);
- [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h,out uint p);
- [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr h,StringBuilder s,int n);
- [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int n);
- [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
- [DllImport("user32.dll")] public static extern IntPtr GetWindow(IntPtr h,uint command);
- [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr h,StringBuilder s,int n);
- [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW")] public static extern IntPtr GetWindowLongPtr(IntPtr h,int index);
- [DllImport("user32.dll",EntryPoint="SetWindowLongPtrW")] public static extern IntPtr SetWindowLongPtr(IntPtr h,int index,IntPtr value);
- [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h,IntPtr insertAfter,int x,int y,int width,int height,uint flags);
+ [DllImport("user32.dll")]public static extern bool EnumWindows(EnumWindowsProc cb,IntPtr p);
+ [DllImport("user32.dll")]public static extern uint GetWindowThreadProcessId(IntPtr h,out uint p);
+ [DllImport("user32.dll")]public static extern bool IsWindowVisible(IntPtr h);
+ [DllImport("user32.dll")]public static extern bool ShowWindow(IntPtr h,int command);
+ [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW")]public static extern IntPtr GetWindowLongPtr(IntPtr h,int index);
+ [DllImport("user32.dll",EntryPoint="SetWindowLongPtrW")]public static extern IntPtr SetWindowLongPtr(IntPtr h,int index,IntPtr value);
+ [DllImport("user32.dll")]public static extern bool SetWindowPos(IntPtr h,IntPtr after,int x,int y,int width,int height,uint flags);
 }
 "@
-
-$mp=Get-Process MOTUMSeries -ErrorAction SilentlyContinue | Select-Object -First 1
-if(-not $mp){
-  Start-Process 'C:\Program Files (x86)\MOTU\CoreUAC\MOTUMSeries.exe' -WindowStyle Minimized
-  Start-Sleep -Seconds 2
-  $mp=Get-Process MOTUMSeries -ErrorAction Stop | Select-Object -First 1
-}
-$script:hw=[IntPtr]::Zero
-[MWinClock]::EnumWindows({
- param($h,$l)
- [uint32]$procId=0
- [MWinClock]::GetWindowThreadProcessId($h,[ref]$procId)|Out-Null
- if($procId -eq $mp.Id){
-   $sb=New-Object System.Text.StringBuilder 256
-   [MWinClock]::GetWindowText($h,$sb,$sb.Capacity)|Out-Null
-   if($sb.ToString() -eq 'MOTU M-Series'){ $script:hw=$h; return $false }
- }
- return $true
-},[IntPtr]::Zero)|Out-Null
-if($script:hw -eq [IntPtr]::Zero){ throw 'MOTU window not found' }
-
-# MOTU UIAutomation works on its hidden main window; never show/focus the app.
-# Prevent the hidden MOTU control window from receiving foreground activation while
-# UIAutomation selects native/shared sample rates; avoid affecting the audio driver.
-$originalExStyle=[MWinClock]::GetWindowLongPtr($script:hw,-20).ToInt64()
-$noActivate=0x08000000L
-if(($originalExStyle -band $noActivate) -eq 0) {
-  [void][MWinClock]::SetWindowLongPtr($script:hw,-20,[IntPtr]($originalExStyle -bor $noActivate))
-  [void][MWinClock]::SetWindowPos($script:hw,[IntPtr]::Zero,0,0,0,0,[uint32]0x233)
-}
-$verifiedExStyle=[MWinClock]::GetWindowLongPtr($script:hw,-20).ToInt64()
-if(($verifiedExStyle -band $noActivate) -eq 0){ Write-Warning 'MOTU hidden control window NOACTIVATE style was not accepted' }
-[MWinClock]::ShowWindow($script:hw,0)|Out-Null
-Add-Type -AssemblyName UIAutomationClient
-Add-Type -AssemblyName UIAutomationTypes
-$w=[System.Windows.Automation.AutomationElement]::FromHandle($script:hw)
-function Get-El($aid){
- $c=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::AutomationIdProperty,$aid)
- return $w.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$c)
-}
-$combo=Get-El 'sampleRateSelector'
-$buffer=Get-El 'bufferSizeSelector'
-$sync=Get-El 'lockWaveSR'
-$low=Get-El 'useLowestLatencySafetyOffsets'
-if(-not $combo -or -not $buffer -or -not $sync){ throw 'MOTU controls not found' }
-
-# Both selectors must be collapsed even if WPF selection throws. The old
-# cleanup loop iterated over two null variables and never closed anything.
-$rateMenu=$null
-$bufferMenu=$null
-try { $rateMenu=$combo.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern) } catch { }
-try { $bufferMenu=$buffer.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern) } catch { }
-function Dismiss-MotuSelectorPopups {
-  foreach($menu in @($bufferMenu,$rateMenu)){
-    if($null -ne $menu){
-      try {
-        if($menu.Current.ExpandCollapseState -eq [System.Windows.Automation.ExpandCollapseState]::Expanded){
-          $menu.Collapse()
-        }
-      } catch { Write-Warning "MOTU selector collapse failed: $($_.Exception.Message)" }
-    }
-  }
-  # WPF can leave a separate HWND popup visible after the ComboBox closes.
-  # Hide only anonymous WPF windows owned by this MOTU settings window.
-  try {
-    [MWinClock]::EnumWindows({
-      param($h,$l)
-      if($h -eq $script:hw){return $true}
-      [uint32]$otherProcId=0
-      [MWinClock]::GetWindowThreadProcessId($h,[ref]$otherProcId)|Out-Null
-      if($otherProcId -ne $mp.Id){return $true}
-      if([MWinClock]::GetWindow($h,4) -ne $script:hw){return $true}
-      if(-not [MWinClock]::IsWindowVisible($h)){return $true}
-      $className=New-Object System.Text.StringBuilder 128
-      [MWinClock]::GetClassName($h,$className,$className.Capacity)|Out-Null
-      if($className.ToString().StartsWith('HwndWrapper[')){
-        [MWinClock]::ShowWindow($h,0)|Out-Null
+function Hide-MotuPanelWindows {
+  $motu=Get-Process MOTUMSeries -ErrorAction SilentlyContinue|Select-Object -First 1
+  if(-not $motu){return}
+  $motuPid=[uint32]$motu.Id
+  [MWinClock]::EnumWindows({
+    param($h,$l)
+    [uint32]$windowPid=0
+    [MWinClock]::GetWindowThreadProcessId($h,[ref]$windowPid)|Out-Null
+    if($windowPid -eq $motuPid -and [MWinClock]::IsWindowVisible($h)){
+      $style=[MWinClock]::GetWindowLongPtr($h,-20).ToInt64()
+      $noActivate=0x08000000L
+      if(($style -band $noActivate) -eq 0){
+        [void][MWinClock]::SetWindowLongPtr($h,-20,[IntPtr]($style -bor $noActivate))
+        [void][MWinClock]::SetWindowPos($h,[IntPtr]::Zero,0,0,0,0,[uint32]0x233)
       }
-      return $true
-    },[IntPtr]::Zero)|Out-Null
-  } catch { Write-Warning "MOTU owned popup cleanup failed: $($_.Exception.Message)" }
+      [void][MWinClock]::ShowWindow($h,0)
+    }
+    return $true
+  },[IntPtr]::Zero)|Out-Null
 }
-Dismiss-MotuSelectorPopups
-try {
-$spat=$combo.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
-$cur=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
-if($cur -ne [string]$Rate){
-  # Select without Expand/Realize; both can surface a detached WPF popup.
-  # A stale UIA element may throw after the driver actually changed rate,
-  # so re-read the selection before attempting one fresh direct selection.
-  $selected=$cur
-  $selectionError=$null
-  for($attempt=1; $attempt -le 2; $attempt++){
-    try {
-      $rateItems=$combo.GetCurrentPattern([System.Windows.Automation.ItemContainerPattern]::Pattern)
-      $item=$rateItems.FindItemByProperty($null,[System.Windows.Automation.AutomationElement]::NameProperty,[string]$Rate)
-      if(-not $item){throw "MOTU rate item $Rate unavailable in hidden selector"}
-      $item.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern).Select()
-    } catch { $selectionError=$_.Exception.Message }
-    Start-Sleep -Milliseconds 450
-    try {
-      $spat=$combo.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
-      $selected=(($spat.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
-    } catch { $selectionError=$_.Exception.Message }
-    if($selected -eq [string]$Rate){break}
-  }
-  if($selected -ne [string]$Rate){throw "MOTU hidden rate selection failed: wanted $Rate got $selected; lastError=$selectionError"}
-}
-if(-not $Shared){ Write-Output "NATIVE_RATE_ALIGNED rate=$Rate previous=$cur" }
-# Buffer 2048
-$bsp=$buffer.GetCurrentPattern([System.Windows.Automation.SelectionPattern]::Pattern)
-$bcur=(($bsp.Current.GetSelection())|ForEach-Object{$_.Current.Name}) -join ','
-if($bcur -ne '2048'){
-  # Unlike the sample-rate items, MOTU's virtualized buffer items require
-  # Realize(), which EXPANDS a visible popup. Do not trigger that during playback.
-  $warning="MOTU buffer mismatch current=$bcur expected=2048; popup-free switch left buffer unchanged"
-  Write-Warning $warning
-  "$(Get-Date -Format o) $warning" | Add-Content -Encoding UTF8 'C:\CamillaDSP\audio-clock-mode.log'
-}
-$tp=$sync.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
-if($tp.Current.ToggleState.ToString() -eq 'Off'){ $tp.Toggle(); Start-Sleep -Milliseconds 300 }
-if($low){
-  $ltp=$low.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
-  if($ltp.Current.ToggleState.ToString() -eq 'On'){ $ltp.Toggle(); Start-Sleep -Milliseconds 300 }
-}
- } finally {
-  Dismiss-MotuSelectorPopups
-  # Keep both MOTU window and its drop-downs out of the desktop.
-  [MWinClock]::ShowWindow($script:hw,0)|Out-Null
-}
+Hide-MotuPanelWindows
 
   # Keep current VAC Line 1 render/capture endpoints aligned to the requested rate.
   $vacIds=Get-ActiveAudioEndpointIds '^Line 1\(Virtual Audio Cable\)$'
@@ -260,6 +149,7 @@ if($low){
   }
 
 
+Hide-MotuPanelWindows
 if($Shared){
   # Light Host output endpoint is fixed 48 kHz / 16-bit.
   $vbIds=Get-ActiveAudioEndpointIds '^CABLE Input\(VB-Audio Virtual Cable\)$'
@@ -296,6 +186,7 @@ if($Shared){
   }
 }
 
+Hide-MotuPanelWindows
 $mode=if($Shared){'shared'}else{'native'}
 "$(Get-Date -Format o) mode=$mode rate=$Rate lightHost=$([bool](Get-Process 'Light Host' -ErrorAction SilentlyContinue))" |
   Add-Content -Encoding UTF8 'C:\CamillaDSP\audio-clock-mode.log'
